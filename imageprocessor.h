@@ -49,6 +49,7 @@ private:
 
     ProcessType m_processType;
 
+
     void loadSettings();
 
 private slots:
@@ -61,6 +62,8 @@ public slots:
     void updateImage(const Mat &image);
     void processTypeChanged(const int& processType);
     void setFps(const int &fps);
+    void startProcessor();
+    void stopProcessor();
 
 };
 

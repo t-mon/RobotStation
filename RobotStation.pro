@@ -27,7 +27,8 @@ SOURCES += main.cpp\
         Tools/markergeneratordialog.cpp \
         markersearchengine.cpp \
         imageprocessor.cpp \
-        Tools/thresholddialog.cpp
+        Tools/thresholddialog.cpp \
+        Tools/qrcodesearchdialog.cpp
 
 HEADERS  += mainwindow.h \
         core.h \
@@ -37,4 +38,5 @@ HEADERS  += mainwindow.h \
         Tools/markergeneratordialog.h \
         markersearchengine.h \
         imageprocessor.h \
-        Tools/thresholddialog.h
+        Tools/thresholddialog.h \
+        Tools/qrcodesearchdialog.h

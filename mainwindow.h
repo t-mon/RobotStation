@@ -30,7 +30,7 @@ private:
 
     QAction *m_exitAction;
     QAction *m_calibrateAction;
-    QAction *m_codeSearchAction;
+    QAction *m_qrCodeSearchAction;
     QAction *m_markerCreatorAction;
 
     QStatusBar *m_statusBar;
@@ -63,8 +63,9 @@ signals:
     void fpsChanged(const int &fps);
     void thresholdValueChanged(const int &threshold);
     void processTypeChanged(const int &processType);
+
     void startVideo();
-    void pauseVideo();
+    void stopVideo();
 
 private slots:
     void startCalibrationDialog();

@@ -6,6 +6,8 @@
 #include "Tools/calibrationdialog.h"
 #include "Tools/markergeneratordialog.h"
 #include "Tools/snapshotdialog.h"
+#include "Tools/qrcodesearchdialog.h"
+#include "Tools/thresholddialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -87,13 +89,13 @@ QGroupBox *MainWindow::createToolGroupBox()
     // ********************************************************************************
     QHBoxLayout *videoLayout = new QHBoxLayout(toolGroupBox);
     QPushButton *startVideo = new QPushButton("Start video");
-    QPushButton *pauseVideo = new QPushButton("Pause");
+    QPushButton *stopVideo = new QPushButton("Stop video");
 
     videoLayout->addWidget(startVideo);
-    videoLayout->addWidget(pauseVideo);
+    videoLayout->addWidget(stopVideo);
 
     connect(startVideo,SIGNAL(clicked()),this,SIGNAL(startVideo()));
-    connect(pauseVideo,SIGNAL(clicked()),this,SIGNAL(pauseVideo()));
+    connect(stopVideo,SIGNAL(clicked()),this,SIGNAL(stopVideo()));
 
     // Take Snapshot
     // ********************************************************************************
@@ -185,11 +187,11 @@ void MainWindow::createMenus()
     m_toolMenu->addAction(m_calibrateAction);
     connect(m_calibrateAction,SIGNAL(triggered()),this,SLOT(startCalibrationDialog()));
 
-    m_codeSearchAction = new QAction(tr("Search &code"),this);
-    m_toolMenu->addAction(m_codeSearchAction);
-    connect(m_codeSearchAction,SIGNAL(triggered()),this,SLOT(startCodeSearchDialog()));
+    m_qrCodeSearchAction = new QAction(tr("QR-code search engine"),this);
+    m_toolMenu->addAction(m_qrCodeSearchAction);
+    connect(m_qrCodeSearchAction,SIGNAL(triggered()),this,SLOT(startCodeSearchDialog()));
 
-    m_markerCreatorAction = new QAction(tr("Create ArUco Marker"),this);
+    m_markerCreatorAction = new QAction(tr("Marker generator"),this);
     m_toolMenu->addAction(m_markerCreatorAction);
     connect(m_markerCreatorAction,SIGNAL(triggered()),this,SLOT(startMarkerGeneratorDialog()));
 }
@@ -202,7 +204,8 @@ void MainWindow::startCalibrationDialog()
 
 void MainWindow::startCodeSearchDialog()
 {
-
+    QRCodeSearchDialog qrCodeSearchDialog;
+    qrCodeSearchDialog.exec();
 }
 
 void MainWindow::startSnapshotDialog()

@@ -2,7 +2,7 @@
 #include "core.h"
 
 SnapshotDialog::SnapshotDialog(QWidget *parent, QImage snapshot) :
-    QDialog(parent),m_snapshot(snapshot)
+    QDialog(parent),m_image(snapshot)
 {
     m_filePath = QDir::homePath();
 
@@ -12,7 +12,7 @@ SnapshotDialog::SnapshotDialog(QWidget *parent, QImage snapshot) :
     m_imageLabel = new QLabel(this);
     m_imageLabel->setAutoFillBackground(true);
     m_imageLabel->setFixedSize(640,480);
-    m_imageLabel->setPixmap(QPixmap::fromImage(m_snapshot));
+    m_imageLabel->setPixmap(QPixmap::fromImage(m_image));
 
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     m_saveButton = new QPushButton("Save");
@@ -33,7 +33,7 @@ void SnapshotDialog::saveImage()
     if(fileName.right(5) != ".jpeg"){
         fileName.append(".jpeg");
     }
-    QPixmap image = QPixmap::fromImage(m_snapshot);
+    QPixmap image = QPixmap::fromImage(m_image);
     qDebug() << "save image to" << fileName;
     if(image.save(fileName)){
         Core::instance()->window()->writeToTerminal("Snapshot saved to " + fileName);

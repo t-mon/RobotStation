@@ -24,20 +24,27 @@ void CameraEngine::captureImage()
 
 void CameraEngine::startEngine()
 {
+    if(m_capture.isOpened()){
+        return;
+    }
+
     m_capture.open(m_camera);
+
     if(!m_capture.isOpened()){
         qDebug() << "ERROR: could not open camera.";
         return;
     }
     qDebug() << "Camera open.";
     m_timer->start();
+    Core::instance()->imageProcessor()->startProcessor();
 }
 
 void CameraEngine::stopEngine()
 {
     m_timer->stop();
+    Core::instance()->imageProcessor()->stopProcessor();
 
-    if(!m_capture.isOpened()){
+    if(m_capture.isOpened()){
         m_capture.release();
         qDebug() << "Camera engine stopped.";
     }

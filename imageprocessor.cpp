@@ -10,7 +10,6 @@ ImageProcessor::ImageProcessor(QObject *parent) :
     m_timer->setInterval(30);
 
     connect(m_timer,SIGNAL(timeout()),this,SLOT(processImage()));
-    m_timer->start();
 }
 
 Mat ImageProcessor::convertQImageToMat(QImage image)
@@ -190,4 +189,16 @@ void ImageProcessor::setFps(const int &fps)
     int dt = (int)( ((float)1 / (fps)) *1000 );
     qDebug() << "fps =" << fps << " -> dt =" << dt << "ms";
     m_timer->setInterval(dt);
+}
+
+void ImageProcessor::startProcessor()
+{
+    m_timer->start();
+    qDebug() << "image processor started.";
+}
+
+void ImageProcessor::stopProcessor()
+{
+    m_timer->stop();
+    qDebug() << "image processor stopped.";
 }

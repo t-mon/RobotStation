@@ -15,7 +15,7 @@ public:
     explicit SnapshotDialog(QWidget *parent = 0, QImage snapshot = QImage());
 
     QLabel *m_imageLabel;
-    QImage m_snapshot;
+    QImage m_image;
 
     QPushButton *m_saveButton;
     QPushButton *m_cancelButton;
