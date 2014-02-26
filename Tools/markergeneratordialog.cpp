@@ -7,29 +7,49 @@ MarkerGeneratorDialog::MarkerGeneratorDialog(QWidget *parent) :
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     setWindowTitle("Create ArUco Marker...");
 
-    m_imageSize = 1400;
-
     // Image
     m_imageLabel = new QLabel(this);
     m_imageLabel->setAutoFillBackground(true);
     m_imageLabel->setFixedSize(500,500);
 
-    // Code
+    // ID
+    m_id = 0;
     QHBoxLayout *codeLayout = new QHBoxLayout();
     m_idLabel = new QLabel(tr("0"),this);
-    m_idLabel->setFixedWidth(50);
+    m_idLabel->setFixedWidth(100);
 
     m_idSlider = new QSlider(Qt::Horizontal,this);
     m_idSlider->setMinimum(0);
     m_idSlider->setMaximum(1024);
     m_idSlider->setTickInterval(1);
     m_idSlider->setTickPosition(QSlider::TicksBothSides);
-    m_idSlider->setValue(0);
+    m_idSlider->setValue(m_id);
 
-    connect(m_idSlider,SIGNAL(valueChanged(int)),this,SLOT(createCodeImage(int)));
+    connect(m_idSlider,SIGNAL(valueChanged(int)),this,SLOT(idChanged(int)));
 
     codeLayout->addWidget(m_idLabel);
     codeLayout->addWidget(m_idSlider);
+
+
+    // Size
+    m_imageSize = 700;
+
+    QHBoxLayout *sizeLayout = new QHBoxLayout();
+    m_sizeLabel = new QLabel(tr("700x700"),this);
+    m_sizeLabel->setFixedWidth(100);
+
+    m_sizeSlider = new QSlider(Qt::Horizontal,this);
+    m_sizeSlider->setMinimum(7);
+    m_sizeSlider->setMaximum(1400);
+    m_sizeSlider->setSingleStep(7);
+    m_sizeSlider->setTickInterval(7);
+    m_sizeSlider->setTickPosition(QSlider::TicksBothSides);
+    m_sizeSlider->setValue(m_imageSize);
+
+    connect(m_sizeSlider,SIGNAL(valueChanged(int)),this,SLOT(imageSizeChaged(int)));
+
+    sizeLayout->addWidget(m_sizeLabel);
+    sizeLayout->addWidget(m_sizeSlider);
 
     // Buttons
     QHBoxLayout *buttonLayout = new QHBoxLayout();
@@ -40,12 +60,13 @@ MarkerGeneratorDialog::MarkerGeneratorDialog(QWidget *parent) :
 
     mainLayout->addWidget(m_imageLabel);
     mainLayout->addLayout(codeLayout);
+    mainLayout->addLayout(sizeLayout);
     mainLayout->addLayout(buttonLayout);
 
     connect(m_saveButton,SIGNAL(clicked()),this,SLOT(saveImage()));
     connect(m_cancelButton,SIGNAL(clicked()),this,SLOT(reject()));
 
-    createCodeImage(0);
+    updateImage();
 }
 
 void MarkerGeneratorDialog::saveImage()
@@ -66,9 +87,23 @@ void MarkerGeneratorDialog::saveImage()
     }
 }
 
-void MarkerGeneratorDialog::createCodeImage(const int &id)
+void MarkerGeneratorDialog::idChanged(const int &id)
 {
-    m_idLabel->setText(QString::number(id));
+    m_id = id;
+    updateImage();
+}
+
+
+void MarkerGeneratorDialog::imageSizeChaged(const int &imageSize)
+{
+    m_imageSize = imageSize;
+    updateImage();
+}
+
+void MarkerGeneratorDialog::updateImage()
+{
+    m_idLabel->setText(QString::number(m_id));
+    m_sizeLabel->setText(QString::number(m_imageSize) + "x" + QString::number(m_imageSize));
     m_codeMat = Mat::zeros(m_imageSize,m_imageSize,CV_8UC1);
 
     /* SOURCE: http://sourceforge.net/p/aruco/code/HEAD/tree/aruco_create_marker.cpp#l31
@@ -96,7 +131,7 @@ void MarkerGeneratorDialog::createCodeImage(const int &id)
     int swidth = (int)((float) m_imageSize / 7);
 
     for (int y=0; y<5; y++){
-        int index = (id >> 2 * (4 - y)) & 0x0003;
+        int index = (m_id >> 2 * (4 - y)) & 0x0003;
         int val = ids[index];
 
         for (int x=0; x<5; x++){

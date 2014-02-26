@@ -28,10 +28,10 @@ CalibrationDialog::CalibrationDialog(QWidget *parent) :
     m_fpsSlider->setMinimum(1);
     m_fpsSlider->setMaximum(30);
     m_fpsSlider->setTickInterval(1);
+    m_fpsSlider->setValue(1);
+    Core::instance()->imageProcessor()->setFps(1);
 
     connect(m_fpsSlider,SIGNAL(valueChanged(int)),this,SLOT(fpsChaged(int)));
-
-    m_fpsSlider->setValue(1);
 
     frameStepLayout->addWidget(frameStepDialog);
     frameStepLayout->addWidget(m_fpsSlider);
@@ -59,11 +59,9 @@ CalibrationDialog::CalibrationDialog(QWidget *parent) :
 
     connect(m_saveButton, SIGNAL(clicked()),this, SLOT(saveClicked()));
     connect(m_retryButton,SIGNAL(clicked()),this,SLOT(retryClicked()));
-    connect(m_cancelButton, SIGNAL(clicked()),this, SLOT(reject()));
+    connect(m_cancelButton, SIGNAL(clicked()),this, SLOT(cancelClicked()));
 
     connect(Core::instance()->imageProcessor(), SIGNAL(imageReady(Mat)), this, SLOT(updateImage(Mat)));
-
-
 }
 
 void CalibrationDialog::init()
@@ -116,6 +114,12 @@ void CalibrationDialog::retryClicked()
     m_saveButton->setDisabled(true);
 
     m_imagePoints.clear();
+}
+
+void CalibrationDialog::cancelClicked()
+{
+    Core::instance()->imageProcessor()->setFps(20);
+    reject();
 }
 
 void CalibrationDialog::updateImage(const Mat &image)

@@ -136,7 +136,10 @@ void ImageProcessor::processImage()
         image = m_image;
     }
 
-    imageReady(image);
+
+    // TODO: switch process types
+
+    emit imageReady(image);
     Core::instance()->window()->updateImage(convertMatToQimage(image));
 }
 

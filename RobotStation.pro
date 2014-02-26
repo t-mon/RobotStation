@@ -22,17 +22,19 @@ SOURCES += main.cpp\
         mainwindow.cpp \
         core.cpp \
         cameraengine.cpp \
-        snapshotdialog.cpp \
-        calibrationdialog.cpp \
-        markergeneratordialog.cpp \
+        Tools/snapshotdialog.cpp \
+        Tools/calibrationdialog.cpp \
+        Tools/markergeneratordialog.cpp \
         markersearchengine.cpp \
-        imageprocessor.cpp
+        imageprocessor.cpp \
+        Tools/thresholddialog.cpp
 
 HEADERS  += mainwindow.h \
         core.h \
         cameraengine.h \
-        snapshotdialog.h \
-        calibrationdialog.h \
-        markergeneratordialog.h \
+        Tools/snapshotdialog.h \
+        Tools/calibrationdialog.h \
+        Tools/markergeneratordialog.h \
         markersearchengine.h \
-        imageprocessor.h
+        imageprocessor.h \
+        Tools/thresholddialog.h

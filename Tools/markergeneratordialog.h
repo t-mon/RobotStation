@@ -29,6 +29,11 @@ private:
 
     QLabel *m_idLabel;
     QSlider *m_idSlider;
+    int m_id;
+
+    QLabel *m_sizeLabel;
+    QSlider *m_sizeSlider;
+    int m_imageSize;
 
     QPushButton *m_saveButton;
     QPushButton *m_cancelButton;
@@ -36,11 +41,12 @@ private:
     Mat m_codeMat;
     QImage m_codeImage;
 
-    int m_imageSize;
 
 private slots:
     void saveImage();
-    void createCodeImage(const int &id);
+    void idChanged(const int &id);
+    void imageSizeChaged(const int &imageSize);
+    void updateImage();
 
 public slots:
 

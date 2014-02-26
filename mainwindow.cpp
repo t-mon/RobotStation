@@ -3,9 +3,9 @@
 #include <QDebug>
 #include <QSettings>
 
-#include "calibrationdialog.h"
-#include "markergeneratordialog.h"
-#include "snapshotdialog.h"
+#include "Tools/calibrationdialog.h"
+#include "Tools/markergeneratordialog.h"
+#include "Tools/snapshotdialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

@@ -63,6 +63,7 @@ private slots:
     void fpsChaged(const int &fps);
     void saveClicked();
     void retryClicked();
+    void cancelClicked();
 
 signals:
 
