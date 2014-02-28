@@ -20,7 +20,7 @@ MarkerGeneratorDialog::MarkerGeneratorDialog(QWidget *parent) :
 
     m_idSlider = new QSlider(Qt::Horizontal,this);
     m_idSlider->setMinimum(0);
-    m_idSlider->setMaximum(1024);
+    m_idSlider->setMaximum(1023);
     m_idSlider->setTickInterval(1);
     m_idSlider->setTickPosition(QSlider::TicksBothSides);
     m_idSlider->setValue(m_id);

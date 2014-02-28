@@ -62,31 +62,6 @@ QGroupBox *MainWindow::createToolGroupBox()
     QVBoxLayout *toolLayout = new QVBoxLayout(toolGroupBox);
     toolGroupBox->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
 
-
-    // process selection
-    // ********************************************************************************
-    QSettings settings("RobotStation");
-    int processType = settings.value("processType",0).toInt();
-
-    QHBoxLayout *processLayout = new QHBoxLayout(toolGroupBox);
-    QLabel *processLabel = new QLabel(tr("Select image process"),toolGroupBox);
-    m_imageComboBox = new QComboBox(toolGroupBox);
-    m_imageComboBox->addItem("original image",QVariant(0));
-    m_imageComboBox->addItem("undistort image",QVariant(1));
-    m_imageComboBox->addItem("gray image",QVariant(2));
-    m_imageComboBox->addItem("gray equalized image",QVariant(3));
-    m_imageComboBox->addItem("threshold image",QVariant(4));
-    m_imageComboBox->addItem("adaptive threshold image",QVariant(5));
-    m_imageComboBox->addItem("canny image",QVariant(6));
-    m_imageComboBox->addItem("result image",QVariant(7));
-
-    m_imageComboBox->setCurrentIndex(processType);
-
-    connect(m_imageComboBox,SIGNAL(activated(int)),this,SIGNAL(processTypeChanged(int)));
-
-    processLayout->addWidget(processLabel);
-    processLayout->addWidget(m_imageComboBox);
-
     // Video Start Stop
     // ********************************************************************************
     QHBoxLayout *videoLayout = new QHBoxLayout(toolGroupBox);
@@ -123,6 +98,30 @@ QGroupBox *MainWindow::createToolGroupBox()
     fpsLayout->addWidget(fpsDescriptionLabel);
     fpsLayout->addWidget(m_fpsSlider);
     fpsLayout->addWidget(m_fpsLabel);
+
+    // process selection
+    // ********************************************************************************
+    QSettings settings("RobotStation");
+    int processType = settings.value("processType",0).toInt();
+
+    QHBoxLayout *processLayout = new QHBoxLayout(toolGroupBox);
+    QLabel *processLabel = new QLabel(tr("Select image process"),toolGroupBox);
+    m_imageComboBox = new QComboBox(toolGroupBox);
+    m_imageComboBox->addItem("original image",QVariant(0));
+    m_imageComboBox->addItem("undistort image",QVariant(1));
+    m_imageComboBox->addItem("gray image",QVariant(2));
+    m_imageComboBox->addItem("gray equalized image",QVariant(3));
+    m_imageComboBox->addItem("threshold image",QVariant(4));
+    m_imageComboBox->addItem("adaptive threshold image",QVariant(5));
+    m_imageComboBox->addItem("canny image",QVariant(6));
+    m_imageComboBox->addItem("result image",QVariant(7));
+
+    m_imageComboBox->setCurrentIndex(processType);
+
+    connect(m_imageComboBox,SIGNAL(activated(int)),this,SIGNAL(processTypeChanged(int)));
+
+    processLayout->addWidget(processLabel);
+    processLayout->addWidget(m_imageComboBox);
 
     // Threshold
     // ********************************************************************************

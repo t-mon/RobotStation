@@ -51,18 +51,17 @@ void MarkerSearchEngine::drawMarkers(Mat &image, QList<Marker> markerList)
         line(image,marker.p4(),marker.p1(),Scalar(0, 255, 0),1,8,0);
 
         // draw border points
-        circle(image,marker.p1(),5,Scalar(0,0,255),2,8);
-        circle(image,marker.p2(),5,Scalar(0,0,255),2,8);
-        circle(image,marker.p3(),5,Scalar(0,0,255),2,8);
-        circle(image,marker.p4(),5,Scalar(0,0,255),2,8);
+        circle(image,marker.p1(),5,Scalar(0,0,255),1,8);
+        circle(image,marker.p2(),5,Scalar(0,0,255),1,8);
+        circle(image,marker.p3(),5,Scalar(0,0,255),1,8);
+        circle(image,marker.p4(),5,Scalar(0,0,255),1,8);
 
         // draw diagonales
         line(image,marker.p1(),marker.p3(),Scalar(0, 255, 0),1,8,0);
         line(image,marker.p2(),marker.p4(),Scalar(0, 255, 0),1,8,0);
 
-
         // draw center point
-        circle(image,marker.center(),5,Scalar(0,0,255),2,8);
+        circle(image,marker.center(),5,Scalar(0,0,255),1,8);
 
         // write id as text to center of marker
         string text = QString::number(marker.id()).toStdString();
