@@ -9,6 +9,8 @@ ImageProcessor::ImageProcessor(QObject *parent) :
     m_timer = new QTimer(this);
     m_timer->setInterval(30);
 
+    m_markerSearchEngine = new MarkerSearchEngine(this);
+
     connect(m_timer,SIGNAL(timeout()),this,SLOT(processImage()));
 }
 
@@ -95,15 +97,15 @@ void ImageProcessor::saveCalibrationParameter(Mat intrinsic, Mat extrinsic)
 
 void ImageProcessor::loadSettings()
 {
-    m_calibrated = false;
 
-    // Threshold
-    QSettings settings("masterarbeit");
-    settings.beginGroup("general");
-    //m_threshold = settings.value("threshold",100).toInt();
-    settings.endGroup();
+    // general settings
+    QSettings settings("RobotStation");
+    m_threshold = settings.value("threshold",100).toInt();
+    m_processType = settings.value("processType",0).toInt();
 
     // camera calibration parameter
+    m_calibrated = false;
+
     QString filename;
     filename.append(QDir::homePath());
     filename.append("/.config/calibrationParameter.xml");
@@ -135,10 +137,42 @@ void ImageProcessor::processImage()
         image = m_image;
     }
 
-
-    // TODO: switch process types
-
     emit imageReady(image);
+    emit originalImageReady(m_image);
+
+    switch (m_processType) {
+    case 0:
+        image = m_image;
+        break;
+    case 1:
+        break;
+    case 2:
+        cvtColor(image, image, CV_BGR2GRAY);
+        break;
+    case 3:
+        cvtColor(image, image, CV_BGR2GRAY);
+        equalizeHist(image,image);
+        break;
+    case 4:
+        cvtColor(image, image, CV_BGR2GRAY);
+        threshold(image,image,m_threshold,255,CV_THRESH_BINARY);
+        break;
+    case 5:
+        cvtColor(image, image, CV_BGR2GRAY);
+        adaptiveThreshold(image, image, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 7, 7);
+        break;
+    case 6:
+        cvtColor(image, image, CV_BGR2GRAY);
+        //adaptiveThreshold(image, image, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 7, 7);
+        Canny(image,image,m_threshold,m_threshold+50);
+        break;
+    case 7:
+        m_markerSearchEngine->searchMarker(image);
+        break;
+    default:
+        break;
+    }
+
     Core::instance()->window()->updateImage(convertMatToQimage(image));
 }
 
@@ -149,39 +183,47 @@ void ImageProcessor::updateImage(const Mat &image)
 
 void ImageProcessor::processTypeChanged(const int &processType)
 {
-    m_processType = (ProcessType)processType;
+
+    m_processType = processType;
+
+    QSettings settings("RobotStation");
+    settings.setValue("processType",processType);
 
     switch (m_processType) {
-    case OriginalImage:
+    case 0:
         qDebug() << "process type changed to original image";
         break;
-    case UndistortImage:
+    case 1:
         qDebug() << "process type changed to undistort image";
         break;
-    case GrayImage:
+    case 2:
         qDebug() << "process type changed to gray image";
         break;
-    case GrayEqualizedImage:
+    case 3:
         qDebug() << "process type changed to equalized gray image";
         break;
-    case GaussianBlurImage:
-        qDebug() << "process type changed to gaussian blur image";
-        break;
-    case ThresholdImage:
+    case 4:
         qDebug() << "process type changed to threshold image";
         break;
-    case AdaptiveThresholdImage:
+    case 5:
         qDebug() << "process type changed to adaptice threshold image";
         break;
-    case CannyImage:
+    case 6:
         qDebug() << "process type changed to canny image";
         break;
-    case ResultImage:
+    case 7:
         qDebug() << "process type changed to result image";
         break;
     default:
         break;
     }
+}
+
+void ImageProcessor::thresholdValueChanged(const int &threshold)
+{
+    m_threshold = threshold;
+    QSettings settings("RobotStation");
+    settings.setValue("threshold",threshold);
 }
 
 void ImageProcessor::setFps(const int &fps)

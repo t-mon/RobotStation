@@ -10,6 +10,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 using namespace cv;
+using namespace std;
 
 class MarkerSearchEngine : public QObject
 {
@@ -19,12 +20,20 @@ public:
     int searchMarker(Mat &undistortMat);
 
 private:
-    Mat m_image;
+    Mat m_grayMat;
+    Mat m_resultMat;
 
-    QList<QList<Point> > findMarkerRectangles();
+    vector<vector<Point2f> > m_markerList;
+    vector<vector<Point2f> > m_rectangleList;
+
+    void findRectangles();
+    int decodeMarker(vector<Point2f> rectangle);
+    void estimateMarkerPositions();
     void drawMarkers(Mat &image);
-    int decodeMarkers();
 
+    float perimeter(vector<Point2f> rectangle);
+    int hammDistMarker(Mat bits);
+    Mat rotate(Mat matrix);
 signals:
 
 public slots:

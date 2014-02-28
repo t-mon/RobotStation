@@ -16,6 +16,8 @@ void Core::init()
 
     connect(m_cameraEngine,SIGNAL(imageReady(Mat)),m_imageProcessor,SLOT(updateImage(Mat)));
     connect(m_window,SIGNAL(fpsChanged(int)),m_imageProcessor,SLOT(setFps(int)));
+    connect(m_window,SIGNAL(processTypeChanged(int)),m_imageProcessor,SLOT(processTypeChanged(int)));
+    connect(m_window,SIGNAL(thresholdValueChanged(int)),m_imageProcessor,SLOT(thresholdValueChanged(int)));
     connect(m_window,SIGNAL(startVideo()),m_cameraEngine,SLOT(startEngine()));
     connect(m_window,SIGNAL(stopVideo()),m_cameraEngine,SLOT(stopEngine()));
 

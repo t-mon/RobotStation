@@ -61,7 +61,8 @@ CalibrationDialog::CalibrationDialog(QWidget *parent) :
     connect(m_retryButton,SIGNAL(clicked()),this,SLOT(retryClicked()));
     connect(m_cancelButton, SIGNAL(clicked()),this, SLOT(cancelClicked()));
 
-    connect(Core::instance()->imageProcessor(), SIGNAL(imageReady(Mat)), this, SLOT(updateImage(Mat)));
+    connect(Core::instance()->imageProcessor(), SIGNAL(originalImageReady(Mat)), this, SLOT(updateImage(Mat)));
+
 }
 
 void CalibrationDialog::init()

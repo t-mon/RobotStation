@@ -5,7 +5,7 @@ MarkerGeneratorDialog::MarkerGeneratorDialog(QWidget *parent) :
     QDialog(parent)
 {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
-    setWindowTitle("Create ArUco Marker...");
+    setWindowTitle("Marker generator...");
 
     // Image
     m_imageLabel = new QLabel(this);

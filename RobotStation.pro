@@ -4,12 +4,14 @@
 #
 #-------------------------------------------------
 
+#include qt moules
 QT       += core gui widgets
 
 TARGET = RobotStation
 TEMPLATE = app
 
-#include opencv
+
+#include opencv and zbar libs
 LIBS += -lopencv_core\
         -lopencv_highgui\
         -lopencv_imgproc\
@@ -28,7 +30,8 @@ SOURCES += main.cpp\
         markersearchengine.cpp \
         imageprocessor.cpp \
         Tools/thresholddialog.cpp \
-        Tools/qrcodesearchdialog.cpp
+        Tools/qrcodesearchdialog.cpp \
+    marker.cpp
 
 HEADERS  += mainwindow.h \
         core.h \
@@ -39,4 +42,5 @@ HEADERS  += mainwindow.h \
         markersearchengine.h \
         imageprocessor.h \
         Tools/thresholddialog.h \
-        Tools/qrcodesearchdialog.h
+        Tools/qrcodesearchdialog.h \
+    marker.h

@@ -62,28 +62,30 @@ QGroupBox *MainWindow::createToolGroupBox()
     QVBoxLayout *toolLayout = new QVBoxLayout(toolGroupBox);
     toolGroupBox->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
 
-    QSettings settings("masterarbeit");
 
-    // Image selection
+    // process selection
     // ********************************************************************************
+    QSettings settings("RobotStation");
+    int processType = settings.value("processType",0).toInt();
 
-    QHBoxLayout *imageSelectionLayout = new QHBoxLayout(toolGroupBox);
-    QLabel *imageSelectionLabel = new QLabel(tr("Show  "),toolGroupBox);
+    QHBoxLayout *processLayout = new QHBoxLayout(toolGroupBox);
+    QLabel *processLabel = new QLabel(tr("Select image process"),toolGroupBox);
     m_imageComboBox = new QComboBox(toolGroupBox);
-    m_imageComboBox->addItem("original image");
-    m_imageComboBox->addItem("undistort image");
-    m_imageComboBox->addItem("gray image");
-    m_imageComboBox->addItem("gray equalized image");
-    m_imageComboBox->addItem("blur image");
-    m_imageComboBox->addItem("threshold image");
-    m_imageComboBox->addItem("adaptive threshold image");
-    m_imageComboBox->addItem("canny image");
-    m_imageComboBox->addItem("result image");
+    m_imageComboBox->addItem("original image",QVariant(0));
+    m_imageComboBox->addItem("undistort image",QVariant(1));
+    m_imageComboBox->addItem("gray image",QVariant(2));
+    m_imageComboBox->addItem("gray equalized image",QVariant(3));
+    m_imageComboBox->addItem("threshold image",QVariant(4));
+    m_imageComboBox->addItem("adaptive threshold image",QVariant(5));
+    m_imageComboBox->addItem("canny image",QVariant(6));
+    m_imageComboBox->addItem("result image",QVariant(7));
+
+    m_imageComboBox->setCurrentIndex(processType);
 
     connect(m_imageComboBox,SIGNAL(activated(int)),this,SIGNAL(processTypeChanged(int)));
 
-    imageSelectionLayout->addWidget(imageSelectionLabel);
-    imageSelectionLayout->addWidget(m_imageComboBox);
+    processLayout->addWidget(processLabel);
+    processLayout->addWidget(m_imageComboBox);
 
     // Video Start Stop
     // ********************************************************************************
@@ -101,7 +103,6 @@ QGroupBox *MainWindow::createToolGroupBox()
     // ********************************************************************************
     QPushButton *takeSnapshotButton = new QPushButton("Take snapshot");
     connect(takeSnapshotButton,SIGNAL(clicked()),this,SLOT(startSnapshotDialog()));
-
 
     // Set Fps
     // ********************************************************************************
@@ -126,9 +127,10 @@ QGroupBox *MainWindow::createToolGroupBox()
     // Threshold
     // ********************************************************************************
     QHBoxLayout *thresholdLayout = new QHBoxLayout(toolGroupBox);
+    int threshold = settings.value("threshold",100).toInt();
 
     QLabel *thresholdLabel = new QLabel(tr("Threshold: "),toolGroupBox);
-    m_thresholdValueLabel = new QLabel(settings.value("threshold",100).toString(),toolGroupBox);
+    m_thresholdValueLabel = new QLabel(QString::number(threshold),toolGroupBox);
     m_thresholdValueLabel->setFixedWidth(40);
 
     m_thresholdSlider = new QSlider(Qt::Horizontal,toolGroupBox);
@@ -136,8 +138,8 @@ QGroupBox *MainWindow::createToolGroupBox()
     m_thresholdSlider->setMinimum(0);
     m_thresholdSlider->setTickInterval(1);
     m_thresholdSlider->setTickPosition(QSlider::TicksBothSides);
-    m_thresholdSlider->setValue(settings.value("threshold",100).toInt());
     m_thresholdSlider->setMinimumWidth(200);
+    m_thresholdSlider->setValue(threshold);
 
     connect(m_thresholdSlider,SIGNAL(valueChanged(int)),this,SLOT(updateThresholdValue(int)));
 
@@ -150,7 +152,7 @@ QGroupBox *MainWindow::createToolGroupBox()
     toolLayout->addLayout(videoLayout);
     toolLayout->addWidget(takeSnapshotButton);
     toolLayout->addLayout(fpsLayout);
-    toolLayout->addLayout(imageSelectionLayout);
+    toolLayout->addLayout(processLayout);
     toolLayout->addLayout(thresholdLayout);
 
     toolGroupBox->setLayout(toolLayout);
@@ -222,9 +224,6 @@ void MainWindow::startMarkerGeneratorDialog()
 
 void MainWindow::updateThresholdValue(const int &threshold)
 {
-    QSettings settings("masterarbeit");
-    settings.setValue("threshold",threshold);
-
     m_thresholdValueLabel->setText(QString::number(threshold));
     emit thresholdValueChanged(threshold);
 }

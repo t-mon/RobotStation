@@ -13,6 +13,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include <markersearchengine.h>
+
 using namespace cv;
 
 class ImageProcessor : public QObject
@@ -24,19 +26,6 @@ public:
     QImage convertMatToQimage(Mat imageMat);
     void saveCalibrationParameter(Mat intrinsic, Mat extrinsic);
 
-    enum ProcessType{
-        OriginalImage = 0,
-        UndistortImage = 1,
-        GrayImage = 2,
-        GrayEqualizedImage = 3,
-        GaussianBlurImage = 4,
-        ThresholdImage = 5,
-        AdaptiveThresholdImage = 6,
-        CannyImage = 7,
-        ResultImage = 8
-    };
-
-
 private:
     QTimer *m_timer;
     int m_fps;
@@ -47,8 +36,10 @@ private:
     Mat m_extrinsic;
     bool m_calibrated;
 
-    ProcessType m_processType;
+    int m_processType;
+    int m_threshold;
 
+    MarkerSearchEngine *m_markerSearchEngine;
 
     void loadSettings();
 
@@ -57,10 +48,12 @@ private slots:
 
 signals:
     void imageReady(const Mat &image);
+    void originalImageReady(const Mat &image);
 
 public slots:
     void updateImage(const Mat &image);
     void processTypeChanged(const int& processType);
+    void thresholdValueChanged(const int& threshold);
     void setFps(const int &fps);
     void startProcessor();
     void stopProcessor();

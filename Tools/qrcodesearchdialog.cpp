@@ -6,7 +6,7 @@ QRCodeSearchDialog::QRCodeSearchDialog(QWidget *parent) :
 {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
-    setWindowTitle("QR Code search...");
+    setWindowTitle("QR Code search engine...");
 
     m_imageLabel = new QLabel(this);
     m_imageLabel->setAutoFillBackground(true);
