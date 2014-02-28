@@ -32,6 +32,7 @@ private:
     QAction *m_calibrateAction;
     QAction *m_qrCodeSearchAction;
     QAction *m_markerCreatorAction;
+    QAction *m_markerSearchAction;
 
     QStatusBar *m_statusBar;
 
@@ -72,6 +73,7 @@ private slots:
     void startCodeSearchDialog();
     void startSnapshotDialog();
     void startMarkerGeneratorDialog();
+    void startMarkerSearchDialog();
 
     void updateThresholdValue(const int &threshold);
     void updateFpsValue(const int &fps);

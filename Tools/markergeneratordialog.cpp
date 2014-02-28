@@ -136,7 +136,7 @@ void MarkerGeneratorDialog::updateImage()
 
         for (int x=0; x<5; x++){
             Mat roi = m_codeMat(Rect((x+1)* swidth,(y+1)* swidth,swidth,swidth));
-            if ((val >> 4 - x) & 0x0001){
+            if ((val >> (4 - x)) & 0x0001){
                 roi.setTo(Scalar(255));
             }else{
                 roi.setTo(Scalar(0));

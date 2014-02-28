@@ -7,7 +7,7 @@
 #include "Tools/markergeneratordialog.h"
 #include "Tools/snapshotdialog.h"
 #include "Tools/qrcodesearchdialog.h"
-#include "Tools/thresholddialog.h"
+#include "Tools/markersearchdialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -189,13 +189,19 @@ void MainWindow::createMenus()
     m_toolMenu->addAction(m_calibrateAction);
     connect(m_calibrateAction,SIGNAL(triggered()),this,SLOT(startCalibrationDialog()));
 
-    m_qrCodeSearchAction = new QAction(tr("QR-code search engine"),this);
-    m_toolMenu->addAction(m_qrCodeSearchAction);
-    connect(m_qrCodeSearchAction,SIGNAL(triggered()),this,SLOT(startCodeSearchDialog()));
-
     m_markerCreatorAction = new QAction(tr("Marker generator"),this);
     m_toolMenu->addAction(m_markerCreatorAction);
     connect(m_markerCreatorAction,SIGNAL(triggered()),this,SLOT(startMarkerGeneratorDialog()));
+
+    m_markerSearchAction = new QAction(tr("Marker search engine"),this);
+    m_toolMenu->addAction(m_markerSearchAction);
+    connect(m_markerSearchAction,SIGNAL(triggered()),this,SLOT(startMarkerSearchDialog()));
+
+    m_toolMenu->addSeparator();
+
+    m_qrCodeSearchAction = new QAction(tr("QR-code search engine"),this);
+    m_toolMenu->addAction(m_qrCodeSearchAction);
+    connect(m_qrCodeSearchAction,SIGNAL(triggered()),this,SLOT(startCodeSearchDialog()));
 }
 
 void MainWindow::startCalibrationDialog()
@@ -220,6 +226,12 @@ void MainWindow::startMarkerGeneratorDialog()
 {
     MarkerGeneratorDialog markerGenerator;
     markerGenerator.exec();
+}
+
+void MainWindow::startMarkerSearchDialog()
+{
+    MarkerSearchDialog markerSearch;
+    markerSearch.exec();
 }
 
 void MainWindow::updateThresholdValue(const int &threshold)

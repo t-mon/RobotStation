@@ -17,23 +17,24 @@ CalibrationDialog::CalibrationDialog(QWidget *parent) :
     m_calibrationImageLabel->setFixedSize(640,480);
 
     m_statusText = new QLabel(this);
-    m_statusText->setText("Collecting cessboard images for calibration...\n\n\n");
+    m_statusText->setText("Collecting 30 cessboard images for calibration...\n\n\n");
 
     m_progressBar = new QProgressBar(this);
 
     QHBoxLayout *frameStepLayout = new QHBoxLayout(this);
-    QLabel *frameStepDialog = new QLabel("fps ",this);
+    m_frameStepDialog = new QLabel("fps = 1",this);
 
     m_fpsSlider = new QSlider(Qt::Horizontal,this);
     m_fpsSlider->setMinimum(1);
     m_fpsSlider->setMaximum(30);
     m_fpsSlider->setTickInterval(1);
     m_fpsSlider->setValue(1);
+    m_fpsSlider->setTickPosition(QSlider::TicksBothSides);
     Core::instance()->imageProcessor()->setFps(1);
 
     connect(m_fpsSlider,SIGNAL(valueChanged(int)),this,SLOT(fpsChaged(int)));
 
-    frameStepLayout->addWidget(frameStepDialog);
+    frameStepLayout->addWidget(m_frameStepDialog);
     frameStepLayout->addWidget(m_fpsSlider);
 
     m_progressBar->setRange(0,m_calibrationImages);
@@ -90,6 +91,7 @@ void CalibrationDialog::init()
 
 void CalibrationDialog::fpsChaged(const int &fps)
 {
+    m_frameStepDialog->setText("fps = " + QString::number(fps));
     Core::instance()->imageProcessor()->setFps(fps);
 }
 
@@ -158,7 +160,7 @@ void CalibrationDialog::updateImage(const Mat &image)
             vector<Mat> tvecs;
 
             double rmsError = calibrateCamera(m_objectPoints, m_imagePoints, image.size(), m_intrinsic, m_extrinsic, rvecs, tvecs,CV_CALIB_FIX_K3);
-            m_statusText->setText("Calibration done. \nRMS reprojection error = " + QString::number(rmsError) + " Pixel (should be < 0,5 Pixel)\nParameters saved and will be used from now on in this application.\nShowing undistort camera image...");
+            m_statusText->setText("Calibration done. \nRMS reprojection error = " + QString::number(rmsError) + " Pixel (should be < 0,5 Pixel)\nShowing undistort camera image...\nClick \"save\" to use this parameters from now on in this application.");
 
             qDebug() << "Calibration done...";
             qDebug() << "RMS error" << rmsError;

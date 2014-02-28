@@ -34,6 +34,7 @@ public:
 
     // Frame steps for snapshots
     QSlider *m_fpsSlider;
+    QLabel *m_frameStepDialog;
 
     // collecting cessboard images until we have x valid images
     int m_calibrationImages;

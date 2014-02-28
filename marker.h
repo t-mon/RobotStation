@@ -3,15 +3,35 @@
 
 #include <QObject>
 
-class Marker : public QObject
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+using namespace cv;
+
+class Marker
 {
-    Q_OBJECT
 public:
-    explicit Marker(QObject *parent = 0);
+    Marker(Point2f p1, Point2f p2, Point2f p4, Point2f p3);
 
-signals:
+    Point2f p1() const;
+    Point2f p2() const;
+    Point2f p3() const;
+    Point2f p4() const;
 
-public slots:
+    void setCenter(const Point2f &center);
+    Point2f center() const;
+
+    void setId(const int &id);
+    int id() const;
+
+private:
+    Point2f m_p1;
+    Point2f m_p2;
+    Point2f m_p3;
+    Point2f m_p4;
+
+    Point2f m_center;
+    int m_id;
 
 };
 

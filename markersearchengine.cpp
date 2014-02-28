@@ -6,7 +6,7 @@ MarkerSearchEngine::MarkerSearchEngine(QObject *parent) :
 
 }
 
-int MarkerSearchEngine::searchMarker(Mat &undistortMat)
+QList<Marker> MarkerSearchEngine::searchMarker(Mat &undistortMat)
 {
     // clean up old data
     m_rectangleList.clear();
@@ -22,12 +22,53 @@ int MarkerSearchEngine::searchMarker(Mat &undistortMat)
         decodeMarker(rectangle);
     }
 
-    // if we have found some markers, estimate their exact position
+    if(m_markerList.size() != 0){
+        qDebug() << "found" << m_markerList.size() << "marker";
+        foreach (const Marker &marker, m_markerList){
+            qDebug() << "id: " << marker.id();
+            //            qDebug() << "   p1 = (" << marker.p1().x << "," << marker.p1().y << ")";
+            //            qDebug() << "   p2 = (" << marker.p2().x << "," << marker.p2().y << ")";
+            //            qDebug() << "   p3 = (" << marker.p3().x << "," << marker.p3().y << ")";
+            //            qDebug() << "   p4 = (" << marker.p4().x << "," << marker.p4().y << ")";
+        }
+        qDebug() << "-----------------------------------------";
+    }
+    return m_markerList;
+}
 
-    // and draw the markers
-    drawMarkers(undistortMat);
+void MarkerSearchEngine::drawMarkers(Mat &image, QList<Marker> markerList)
+{
 
-    return m_markerList.size();
+    int fontFace = FONT_HERSHEY_SCRIPT_SIMPLEX;
+    double fontScale = 0.8;
+    int thickness = 1;
+
+    foreach (const Marker &marker, markerList){
+        // Draw border lines
+        line(image,marker.p1(),marker.p2(),Scalar(0, 255, 0),1,8,0);
+        line(image,marker.p2(),marker.p3(),Scalar(0, 255, 0),1,8,0);
+        line(image,marker.p3(),marker.p4(),Scalar(0, 255, 0),1,8,0);
+        line(image,marker.p4(),marker.p1(),Scalar(0, 255, 0),1,8,0);
+
+        // draw border points
+        circle(image,marker.p1(),5,Scalar(0,0,255),2,8);
+        circle(image,marker.p2(),5,Scalar(0,0,255),2,8);
+        circle(image,marker.p3(),5,Scalar(0,0,255),2,8);
+        circle(image,marker.p4(),5,Scalar(0,0,255),2,8);
+
+        // draw diagonales
+        line(image,marker.p1(),marker.p3(),Scalar(0, 255, 0),1,8,0);
+        line(image,marker.p2(),marker.p4(),Scalar(0, 255, 0),1,8,0);
+
+
+        // draw center point
+        circle(image,marker.center(),5,Scalar(0,0,255),2,8);
+
+        // write id as text to center of marker
+        string text = QString::number(marker.id()).toStdString();
+        Point2f drawPoint = Point2f(marker.center().x+20,marker.center().y);
+        putText(image, text, drawPoint, fontFace, fontScale, Scalar(0, 255, 0), thickness, 8);
+    }
 }
 
 void MarkerSearchEngine::findRectangles()
@@ -40,8 +81,6 @@ void MarkerSearchEngine::findRectangles()
     vector<vector<Point> > allContours;
     vector<Vec4i> hierarchy;
     findContours(tmp, allContours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-    //findContours(tmp, allContours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE);
-    //findContours(tmp, allContours, CV_RETR_TREE, CV_CHAIN_APPROX_NONE);
 
     // filter small contours away
     int minContourSizeAllowed = 15;
@@ -108,7 +147,6 @@ void MarkerSearchEngine::findRectangles()
             m_rectangleList.push_back(rectangle);
         }
     }
-    //    qDebug() << "found " << m_rectangleList.size() << "rectangles";
 }
 
 int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
@@ -133,7 +171,6 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
 
     threshold(markerMat, markerMat, 125, 255, THRESH_BINARY | THRESH_OTSU);
 
-    imwrite("/home/timon/marker.jpg",markerMat);
 
     // first check if boarder is totaly black
     int cellSize = (int)((float) size.width / 7);
@@ -143,7 +180,6 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
             inc=1;
         }
         for(int x = 0; x < 7; x += inc){
-            int val=0;
             int Xstart=(x)*(cellSize);
             int Ystart=(y)*(cellSize);
             Mat square=markerMat(Rect(Xstart,Ystart,cellSize,cellSize));
@@ -155,6 +191,7 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
         }
     }
 
+    //imwrite("/home/timon/marker.jpg",markerMat);
 
     // check if inner squares are black or white
     Mat bitMatrix = Mat::zeros(5,5,CV_8UC1);
@@ -201,33 +238,25 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
         id<<=1;
         if ( bits.at<uchar>(y,3)) id|=1;
     }
-    qDebug() << "found id:" << id;
 
     // get subpixel accuracy of marker position
-
-
-    // save marker with id...
-
+    Size winSize = Size( 5, 5 );
+    Size zeroZone = Size( -1, -1 );
+    TermCriteria criteria = cvTermCriteria(CV_TERMCRIT_ITER ,30 ,0.01);
+    cornerSubPix(m_grayMat, rectangle, winSize, zeroZone, criteria);
 
     // get center point...
+    Moments m = moments(rectangle,false);
+    Point2f centerPoint = Point2f(m.m10/m.m00, m.m01/m.m00);
 
+    // save marker...
+    Marker finalMarker = Marker(rectangle.at(0),rectangle.at(1),rectangle.at(3),rectangle.at(2));
+    finalMarker.setId(id);
+    finalMarker.setCenter(centerPoint);
+
+    // save marker with id...
+    m_markerList.push_back(finalMarker);
     return id;
-}
-
-void MarkerSearchEngine::estimateMarkerPositions()
-{
-
-}
-
-void MarkerSearchEngine::drawMarkers(Mat &image)
-{
-    // Draw final markers
-    foreach (const vector<Point2f> &rectangle, m_rectangleList){
-        line(image,rectangle.at(0),rectangle.at(1),Scalar(0, 255, 0),1,8,0);
-        line(image,rectangle.at(1),rectangle.at(2),Scalar(0, 255, 0),1,8,0);
-        line(image,rectangle.at(2),rectangle.at(3),Scalar(0, 255, 0),1,8,0);
-        line(image,rectangle.at(3),rectangle.at(0),Scalar(0, 255, 0),1,8,0);
-    }
 }
 
 float MarkerSearchEngine::perimeter(vector<Point2f> rectangle)
