@@ -129,7 +129,7 @@ QGroupBox *MainWindow::createToolGroupBox()
     // Contrast
     // ********************************************************************************
     QHBoxLayout *contrastLayout = new QHBoxLayout(toolGroupBox);
-    int contrast = settings.value("contrast",1).toInt();
+    double contrast = settings.value("contrast",1).toDouble();
 
     QLabel *contrastLabel = new QLabel(tr("Contrast: "),toolGroupBox);
     contrastLabel->setFixedWidth(100);
@@ -153,7 +153,7 @@ QGroupBox *MainWindow::createToolGroupBox()
     // Brightness
     // ********************************************************************************
     QHBoxLayout *brightnessLayout = new QHBoxLayout(toolGroupBox);
-    int brightness = settings.value("brightness",0).toInt();
+    double brightness = settings.value("brightness",0).toDouble();
 
     QLabel *brightnessLabel = new QLabel(tr("Brightness: "),toolGroupBox);
     brightnessLabel->setFixedWidth(100);

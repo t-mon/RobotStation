@@ -9,9 +9,6 @@ ImageProcessor::ImageProcessor(QObject *parent) :
     m_timer = new QTimer(this);
     m_timer->setInterval(30);
 
-    m_alpha = 1;    // [1.0 - 3.0]
-    m_beta = 1;     // [0 - 100]
-
     m_markerSearchEngine = new MarkerSearchEngine(this);
 
     connect(m_timer,SIGNAL(timeout()),this,SLOT(processImage()));
@@ -145,6 +142,13 @@ void ImageProcessor::loadSettings()
     qDebug() << "processType = " << m_processType;
     qDebug() << "----------------------------------------";
 
+    m_alpha = settings.value("contrast",1).toDouble();
+    qDebug() << "contrast = " << m_alpha;
+    qDebug() << "----------------------------------------";
+
+    m_beta = settings.value("brightness",0).toDouble();
+    qDebug() << "brightness = " << m_beta;
+    qDebug() << "----------------------------------------";
 
     // camera calibration parameter
     // intrinsic
@@ -224,6 +228,9 @@ void ImageProcessor::processImage()
     if(m_image.empty()){
         return;
     }
+
+    emit originalImageReady(m_image);
+
     // check if we have a calibration...
     Mat image;
     if(m_calibrated){
@@ -234,11 +241,8 @@ void ImageProcessor::processImage()
         image = m_image;
     }
 
-    emit originalImageReady(m_image);
-
     // adjust brightness and contrast
     image.convertTo(image,-1,m_alpha,m_beta);
-
     emit imageReady(image);
 
     // switching between process types
