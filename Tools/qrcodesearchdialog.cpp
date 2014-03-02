@@ -44,7 +44,7 @@ void QRCodeSearchDialog::updateImage(const Mat &image)
     int height = grayMat.rows;
 
     // Obtain image data
-    uchar *raw = (uchar *)grayMat.data;
+    uchar *raw = (uchar*)grayMat.data;
 
     // Wrap image data4
     Image zbarImage(width, height, "Y800", raw, width * height);

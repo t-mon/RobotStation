@@ -9,6 +9,9 @@ ImageProcessor::ImageProcessor(QObject *parent) :
     m_timer = new QTimer(this);
     m_timer->setInterval(30);
 
+    m_alpha = 1;    // [1.0 - 3.0]
+    m_beta = 1;     // [0 - 100]
+
     m_markerSearchEngine = new MarkerSearchEngine(this);
 
     connect(m_timer,SIGNAL(timeout()),this,SLOT(processImage()));
@@ -221,34 +224,47 @@ void ImageProcessor::processImage()
     if(m_image.empty()){
         return;
     }
-
+    // check if we have a calibration...
     Mat image;
     if(m_calibrated){
+        // if we have one use the calibrated image for all other processes
         undistort(m_image,image,m_intrinsic,m_extrinsic);
     }else{
+        // else use just the original image
         image = m_image;
     }
 
-    emit imageReady(image);
     emit originalImageReady(m_image);
 
+    // adjust brightness and contrast
+    image.convertTo(image,-1,m_alpha,m_beta);
+
+    emit imageReady(image);
+
+    // switching between process types
     switch (m_processType) {
+
     case 0:{
+        // original
         image = m_image;
         break;
     }
-    case 1:
+    case 1:{
         break;
+    }
     case 2:{
+        // gray
         cvtColor(image, image, CV_BGR2GRAY);
         break;
     }
     case 3:{
+        // gray hist equalized
         cvtColor(image, image, CV_BGR2GRAY);
         equalizeHist(image,image);
         break;
     }
     case 4:{
+
         cvtColor(image, image, CV_BGR2GRAY);
         threshold(image,image,m_threshold,255,CV_THRESH_BINARY);
         break;
@@ -324,6 +340,22 @@ void ImageProcessor::thresholdValueChanged(const int &threshold)
     m_threshold = threshold;
     QSettings settings("RobotStation");
     settings.setValue("threshold",threshold);
+}
+
+void ImageProcessor::brightnessValueChanged(const double &brightness)
+{
+    m_beta = brightness;
+    qDebug() << "brightness =" << brightness;
+    QSettings settings("RobotStation");
+    settings.setValue("brightness",brightness);
+}
+
+void ImageProcessor::contrastValueChanged(const double &contrast)
+{
+    m_alpha = contrast;
+    qDebug() << "contrast =" << contrast;
+    QSettings settings("RobotStation");
+    settings.setValue("contrast",contrast);
 }
 
 void ImageProcessor::setFps(const int &fps)

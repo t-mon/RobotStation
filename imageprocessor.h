@@ -39,6 +39,9 @@ private:
     int m_processType;
     int m_threshold;
 
+    double m_alpha;
+    double m_beta;
+
     MarkerSearchEngine *m_markerSearchEngine;
 
     void loadSettings();
@@ -54,6 +57,9 @@ public slots:
     void updateImage(const Mat &image);
     void processTypeChanged(const int& processType);
     void thresholdValueChanged(const int& threshold);
+    void brightnessValueChanged(const double &brightness);
+    void contrastValueChanged(const double &contrast);
+
     void setFps(const int &fps);
     void startProcessor();
     void stopProcessor();

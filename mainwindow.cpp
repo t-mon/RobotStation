@@ -79,33 +79,15 @@ QGroupBox *MainWindow::createToolGroupBox()
     QPushButton *takeSnapshotButton = new QPushButton("Take snapshot");
     connect(takeSnapshotButton,SIGNAL(clicked()),this,SLOT(startSnapshotDialog()));
 
-    // Set Fps
-    // ********************************************************************************
-    QHBoxLayout *fpsLayout = new QHBoxLayout(toolGroupBox);
-    QLabel *fpsDescriptionLabel = new QLabel(tr("fps"),toolGroupBox);
-    m_fpsLabel = new QLabel("20",toolGroupBox);
-    m_fpsLabel->setFixedWidth(40);
-
-    m_fpsSlider = new QSlider(Qt::Horizontal,toolGroupBox);
-    m_fpsSlider->setMinimum(1);
-    m_fpsSlider->setMaximum(30);
-    m_fpsSlider->setTickInterval(1);
-    m_fpsSlider->setTickPosition(QSlider::TicksBothSides);
-    m_fpsSlider->setValue(20);
-
-    connect(m_fpsSlider,SIGNAL(valueChanged(int)),this,SLOT(updateFpsValue(int)));
-
-    fpsLayout->addWidget(fpsDescriptionLabel);
-    fpsLayout->addWidget(m_fpsSlider);
-    fpsLayout->addWidget(m_fpsLabel);
-
     // process selection
     // ********************************************************************************
     QSettings settings("RobotStation");
     int processType = settings.value("processType",0).toInt();
 
     QHBoxLayout *processLayout = new QHBoxLayout(toolGroupBox);
-    QLabel *processLabel = new QLabel(tr("Select image process"),toolGroupBox);
+    QLabel *processLabel = new QLabel(tr("Process"),toolGroupBox);
+    processLabel->setFixedWidth(100);
+
     m_imageComboBox = new QComboBox(toolGroupBox);
     m_imageComboBox->addItem("original image",QVariant(0));
     m_imageComboBox->addItem("undistort image",QVariant(1));
@@ -123,12 +105,83 @@ QGroupBox *MainWindow::createToolGroupBox()
     processLayout->addWidget(processLabel);
     processLayout->addWidget(m_imageComboBox);
 
+    // Set Fps
+    // ********************************************************************************
+    QHBoxLayout *fpsLayout = new QHBoxLayout(toolGroupBox);
+    QLabel *fpsDescriptionLabel = new QLabel(tr("fps"),toolGroupBox);
+    fpsDescriptionLabel->setFixedWidth(100);
+    m_fpsLabel = new QLabel("20",toolGroupBox);
+    m_fpsLabel->setFixedWidth(40);
+
+    m_fpsSlider = new QSlider(Qt::Horizontal,toolGroupBox);
+    m_fpsSlider->setMinimum(1);
+    m_fpsSlider->setMaximum(30);
+    m_fpsSlider->setTickInterval(1);
+    m_fpsSlider->setTickPosition(QSlider::TicksBothSides);
+    m_fpsSlider->setValue(20);
+
+    connect(m_fpsSlider,SIGNAL(valueChanged(int)),this,SLOT(updateFpsValue(int)));
+
+    fpsLayout->addWidget(fpsDescriptionLabel);
+    fpsLayout->addWidget(m_fpsSlider);
+    fpsLayout->addWidget(m_fpsLabel);
+
+    // Contrast
+    // ********************************************************************************
+    QHBoxLayout *contrastLayout = new QHBoxLayout(toolGroupBox);
+    int contrast = settings.value("contrast",1).toInt();
+
+    QLabel *contrastLabel = new QLabel(tr("Contrast: "),toolGroupBox);
+    contrastLabel->setFixedWidth(100);
+
+    m_contrastValueLabel = new QLabel(QString::number(contrast),toolGroupBox);
+    m_contrastValueLabel->setFixedWidth(40);
+
+    m_contrastSlider = new QSlider(Qt::Horizontal,toolGroupBox);
+    m_contrastSlider->setMinimum(1);
+    m_contrastSlider->setMaximum(300);
+    m_contrastSlider->setTickInterval(1);
+    m_contrastSlider->setTickPosition(QSlider::TicksBothSides);
+    m_contrastSlider->setValue(contrast*100);
+
+    connect(m_contrastSlider,SIGNAL(valueChanged(int)),this,SLOT(updateContrastValue(int)));
+
+    contrastLayout->addWidget(contrastLabel);
+    contrastLayout->addWidget(m_contrastSlider);
+    contrastLayout->addWidget(m_contrastValueLabel);
+
+    // Brightness
+    // ********************************************************************************
+    QHBoxLayout *brightnessLayout = new QHBoxLayout(toolGroupBox);
+    int brightness = settings.value("brightness",0).toInt();
+
+    QLabel *brightnessLabel = new QLabel(tr("Brightness: "),toolGroupBox);
+    brightnessLabel->setFixedWidth(100);
+
+    m_brightnessValueLabel = new QLabel(QString::number(brightness),toolGroupBox);
+    m_brightnessValueLabel->setFixedWidth(40);
+
+    m_brightnessSlider = new QSlider(Qt::Horizontal,toolGroupBox);
+    m_brightnessSlider->setMinimum(-150);
+    m_brightnessSlider->setMaximum(150);
+    m_brightnessSlider->setTickInterval(150);
+    m_brightnessSlider->setTickPosition(QSlider::TicksBothSides);
+    m_brightnessSlider->setValue(brightness);
+
+    connect(m_brightnessSlider,SIGNAL(valueChanged(int)),this,SLOT(updateBrightnessValue(int)));
+
+    brightnessLayout->addWidget(brightnessLabel);
+    brightnessLayout->addWidget(m_brightnessSlider);
+    brightnessLayout->addWidget(m_brightnessValueLabel);
+
     // Threshold
     // ********************************************************************************
     QHBoxLayout *thresholdLayout = new QHBoxLayout(toolGroupBox);
     int threshold = settings.value("threshold",100).toInt();
 
-    QLabel *thresholdLabel = new QLabel(tr("Threshold: "),toolGroupBox);
+    QLabel *thresholdLabel = new QLabel(tr("threshold: "),toolGroupBox);
+    thresholdLabel->setFixedWidth(100);
+
     m_thresholdValueLabel = new QLabel(QString::number(threshold),toolGroupBox);
     m_thresholdValueLabel->setFixedWidth(40);
 
@@ -146,12 +199,14 @@ QGroupBox *MainWindow::createToolGroupBox()
     thresholdLayout->addWidget(m_thresholdSlider);
     thresholdLayout->addWidget(m_thresholdValueLabel);
 
-
     // ********************************************************************************
+
     toolLayout->addLayout(videoLayout);
     toolLayout->addWidget(takeSnapshotButton);
-    toolLayout->addLayout(fpsLayout);
     toolLayout->addLayout(processLayout);
+    toolLayout->addLayout(fpsLayout);
+    toolLayout->addLayout(brightnessLayout);
+    toolLayout->addLayout(contrastLayout);
     toolLayout->addLayout(thresholdLayout);
 
     toolGroupBox->setLayout(toolLayout);
@@ -237,6 +292,19 @@ void MainWindow::updateThresholdValue(const int &threshold)
 {
     m_thresholdValueLabel->setText(QString::number(threshold));
     emit thresholdValueChanged(threshold);
+}
+
+void MainWindow::updateBrightnessValue(const int &brightness)
+{
+    m_brightnessValueLabel->setText(QString::number(brightness));
+    emit brightnessValueChanged((double)brightness);
+}
+
+void MainWindow::updateContrastValue(const int &contrast)
+{
+    double c = (double)contrast/100;
+    m_contrastValueLabel->setText(QString::number(c));
+    emit contrastValueChanged(c);
 }
 
 void MainWindow::updateFpsValue(const int &fps)

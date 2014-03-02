@@ -32,10 +32,9 @@ private:
 
     void findRectangles();
     int decodeMarker(vector<Point2f> rectangle);
-
-    float perimeter(vector<Point2f> rectangle);
     int hammDistMarker(Mat bits);
     Mat rotate(Mat matrix);
+
 signals:
 
 public slots:

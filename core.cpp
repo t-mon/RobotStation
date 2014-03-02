@@ -18,6 +18,8 @@ void Core::init()
     connect(m_window,SIGNAL(fpsChanged(int)),m_imageProcessor,SLOT(setFps(int)));
     connect(m_window,SIGNAL(processTypeChanged(int)),m_imageProcessor,SLOT(processTypeChanged(int)));
     connect(m_window,SIGNAL(thresholdValueChanged(int)),m_imageProcessor,SLOT(thresholdValueChanged(int)));
+    connect(m_window,SIGNAL(brightnessValueChanged(double)),m_imageProcessor,SLOT(brightnessValueChanged(double)));
+    connect(m_window,SIGNAL(contrastValueChanged(double)),m_imageProcessor,SLOT(contrastValueChanged(double)));
     connect(m_window,SIGNAL(startVideo()),m_cameraEngine,SLOT(startEngine()));
     connect(m_window,SIGNAL(stopVideo()),m_cameraEngine,SLOT(stopEngine()));
 

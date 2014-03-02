@@ -49,6 +49,15 @@ private:
     QLabel *m_thresholdValueLabel;
     QSlider *m_thresholdSlider;
 
+
+    // contrast alpha
+    QLabel *m_contrastValueLabel;
+    QSlider *m_contrastSlider;
+
+    // brightness beta
+    QLabel *m_brightnessValueLabel;
+    QSlider *m_brightnessSlider;
+
     // terminal
     QTextEdit *m_terminal;
 
@@ -62,8 +71,10 @@ private:
 
 signals:
     void fpsChanged(const int &fps);
-    void thresholdValueChanged(const int &threshold);
     void processTypeChanged(const int &processType);
+    void thresholdValueChanged(const int &threshold);
+    void contrastValueChanged(const double &contrast);
+    void brightnessValueChanged(const double &brightness);
 
     void startVideo();
     void stopVideo();
@@ -75,8 +86,11 @@ private slots:
     void startMarkerGeneratorDialog();
     void startMarkerSearchDialog();
 
-    void updateThresholdValue(const int &threshold);
     void updateFpsValue(const int &fps);
+    void updateThresholdValue(const int &threshold);
+    void updateBrightnessValue(const int &brightness);
+    void updateContrastValue(const int &contrast);
+
 
 public slots:
     void writeToTerminal(const QString &message);

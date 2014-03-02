@@ -40,8 +40,8 @@ void MarkerSearchEngine::drawMarkers(Mat &image, QList<Marker> markerList)
 {
 
     int fontFace = FONT_HERSHEY_SCRIPT_SIMPLEX;
-    double fontScale = 0.8;
-    int thickness = 1;
+    double fontScale = 0.6;
+    int thickness = 2;
 
     foreach (const Marker &marker, markerList){
         // Draw border lines
@@ -61,12 +61,12 @@ void MarkerSearchEngine::drawMarkers(Mat &image, QList<Marker> markerList)
         line(image,marker.p2(),marker.p4(),Scalar(0, 255, 0),1,8,0);
 
         // draw center point
-        circle(image,marker.center(),5,Scalar(0,0,255),1,8);
+        circle(image,marker.center(),3,Scalar(0,0,255),1,8);
 
         // write id as text to center of marker
         string text = QString::number(marker.id()).toStdString();
         Point2f drawPoint = Point2f(marker.center().x+20,marker.center().y);
-        putText(image, text, drawPoint, fontFace, fontScale, Scalar(0, 255, 0), thickness, 8);
+        putText(image, text, drawPoint, fontFace, fontScale, Scalar(0, 255, 255), thickness, 8);
     }
 }
 
@@ -256,16 +256,6 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
     // save marker with id...
     m_markerList.push_back(finalMarker);
     return id;
-}
-
-float MarkerSearchEngine::perimeter(vector<Point2f> rectangle)
-{
-    float sum=0;
-    for(unsigned int i=0;i<rectangle.size();i++){
-        int i2=(i+1)%rectangle.size();
-        sum += sqrt((rectangle[i].x-rectangle[i2].x)*(rectangle[i].x-rectangle[i2].x)+(rectangle[i].y-rectangle[i2].y)*(rectangle[i].y-rectangle[i2].y)) ;
-    }
-    return sum;
 }
 
 int MarkerSearchEngine::hammDistMarker(Mat bits)
