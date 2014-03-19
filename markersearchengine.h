@@ -37,7 +37,6 @@ private:
     int decodeMarker(vector<Point2f> rectangle);
     Mat rotate(Mat matrix);
 
-    int decodeBin();
     QGenericMatrix<1,7,int> correctCode(QGenericMatrix<1,7,int> code);
     int calculateId(QGenericMatrix<1,7,int> codeX, QGenericMatrix<1,7,int> codeY, QGenericMatrix<1,7,int> codeZ);
     

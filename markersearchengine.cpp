@@ -193,7 +193,7 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
 
     //Rotate in readable orientation
     markerMat = rotate(markerMat);
-    imwrite("/home/timon/marker.jpg",markerMat);
+    //imwrite("/home/timon/marker.jpg",markerMat);
 
 
 
@@ -373,7 +373,7 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
         codeY(6,0) = 0;
     }
 
-    qDebug() << "data y =" << codeY;
+    //qDebug() << "data y =" << codeY;
 
     //==================================================
     // data z
@@ -442,11 +442,7 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
         codeZ(6,0) = 0;
     }
 
-    qDebug() << "data z =" << codeZ;
-
-
-    // correct errors...
-
+    //qDebug() << "data z =" << codeZ;
 
     // calculate id
     int id = calculateId(codeX,codeY,codeZ);
@@ -499,23 +495,43 @@ Mat MarkerSearchEngine::rotate(Mat matrix)
 
 QGenericMatrix<1,7,int> MarkerSearchEngine::correctCode(QGenericMatrix<1,7,int> code)
 {
+    // parity check
+    int hMatrixValues[7*3] = {1,0,1,0,1,0,1,
+                              0,1,1,0,0,1,1,
+                              0,0,0,1,1,1,1};
 
+    QGenericMatrix<7,3,int> hMatrix(hMatrixValues);
+
+
+    QGenericMatrix<1,3,int> syndrome = hMatrix * code;
+
+    for(int i = 0; i < 3; i++){
+        syndrome(i,0) = syndrome(i,0) %2;
+    }
+    // if the z vector is 0 -> pairity ok! no errors in transmission
+    // TODO: correct error if there is one...
+    //qDebug() << "parity check -> syndrome = " << syndrome;
+
+    return code;
 }
 
 int MarkerSearchEngine::calculateId(QGenericMatrix<1, 7, int> codeX, QGenericMatrix<1, 7, int> codeY, QGenericMatrix<1, 7, int> codeZ)
 {
     // [p1, p2, d1, p3, d2, d3, d4]^T
     QByteArray binCode;
+    codeX = correctCode(codeX);
     binCode.append(QByteArray::number(codeX(2,0)));
     binCode.append(QByteArray::number(codeX(4,0)));
     binCode.append(QByteArray::number(codeX(5,0)));
     binCode.append(QByteArray::number(codeX(6,0)));
 
+    codeY = correctCode(codeY);
     binCode.append(QByteArray::number(codeY(2,0)));
     binCode.append(QByteArray::number(codeY(4,0)));
     binCode.append(QByteArray::number(codeY(5,0)));
     binCode.append(QByteArray::number(codeY(6,0)));
 
+    codeZ = correctCode(codeZ);
     binCode.append(QByteArray::number(codeZ(2,0)));
     binCode.append(QByteArray::number(codeZ(4,0)));
     binCode.append(QByteArray::number(codeZ(5,0)));
@@ -523,7 +539,6 @@ int MarkerSearchEngine::calculateId(QGenericMatrix<1, 7, int> codeX, QGenericMat
 
     //qDebug() << "Id = " << binCode << "=" << binCode.toInt(0,2);
     return binCode.toInt(0,2);
-
 }
 
 
