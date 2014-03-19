@@ -6,6 +6,9 @@
 #include <QDebug>
 #include <QList>
 
+#include <QMatrix>
+#include <QGenericMatrix>
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -32,9 +35,12 @@ private:
 
     void findRectangles();
     int decodeMarker(vector<Point2f> rectangle);
-    int hammDistMarker(Mat bits);
     Mat rotate(Mat matrix);
 
+    int decodeBin();
+    QGenericMatrix<1,7,int> correctCode(QGenericMatrix<1,7,int> code);
+    int calculateId(QGenericMatrix<1,7,int> codeX, QGenericMatrix<1,7,int> codeY, QGenericMatrix<1,7,int> codeZ);
+    
 signals:
 
 public slots:

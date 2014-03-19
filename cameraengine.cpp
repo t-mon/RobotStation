@@ -4,7 +4,7 @@
 CameraEngine::CameraEngine(QObject *parent) :
     QObject(parent)
 {   
-    m_camera = CV_CAP_ANY;
+    m_camera = 0;
 
     m_timer = new QTimer(this);
     m_timer->setInterval(10);

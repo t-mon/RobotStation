@@ -190,53 +190,266 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
         }
     }
 
-    //imwrite("/home/timon/marker.jpg",markerMat);
+
+    //Rotate in readable orientation
+    markerMat = rotate(markerMat);
+    imwrite("/home/timon/marker.jpg",markerMat);
+
+
+
+    /*  |-----|-----|-----|-----|-----|-----|-----|
+     *  |  0  |  0  |  0  |  0  |  0  |  0  |  0  |
+     *  |     |     |     |     |     |     |     |
+     *  |-----|-----|-----|-----|-----|-----|-----|
+     *  |  0  |  1  | Px1 | Dx1 | Px2 |  0  |  0  |
+     *  |     |     |     |     |     |     |     |
+     *  |-----|-----|-----|-----|-----|-----|-----|
+     *  |  0  | Px3 | Dx2 | Dx3 | Dx4 | Py1 |  0  |
+     *  |     |     |     |     |     |     |     |
+     *  |-----|-----|-----|-----|-----|-----|-----|
+     *  |  0  | Dy1 | Py2 | Py3 | Dy2 | Dy3 |  0  |
+     *  |     |     |     |     |     |     |     |
+     *  |-----|-----|-----|-----|-----|-----|-----|
+     *  |  0  | Dy4 | Pz1 | Dz1 | Pz2 | Pz3 |  0  |
+     *  |     |     |     |     |     |     |     |
+     *  |-----|-----|-----|-----|-----|-----|-----|
+     *  |  0  |  0  | Dz2 | Dz3 | Dz4 |  0  |  0  |
+     *  |     |     |     |     |     |     |     |
+     *  |-----|-----|-----|-----|-----|-----|-----|
+     *  |  0  |  0  |  0  |  0  |  0  |  0  |  0  |
+     *  |     |     |     |     |     |     |     |
+     *  |-----|-----|-----|-----|-----|-----|-----|
+     *
+     *
+     *  Code word -> | Dx1 | Dx2 | Dx3 | Dx4 | Dy1 | Dy2 | Dy3 | Dy4 | Dz1 | Dz2 | Dz3 | Dz4 | = 2^12 = maximal 4096
+     *
+     *  So we have: - frame has to be black (0)
+     *              - 4  cells for orientation
+     *              - 9  cells for pairity and correction
+     *              - 12 cells for data
+     */
 
     // check if inner squares are black or white
-    Mat bitMatrix = Mat::zeros(5,5,CV_8UC1);
-    for(int y = 0; y < 5; y++){
-        for(int x = 0; x < 5; x++){
-            int cellX = (x+1)*cellSize;
-            int cellY = (y+1)*cellSize;
-            Mat cell = markerMat(Rect(cellX,cellY,cellSize,cellSize));
-            int nZ = countNonZero(cell);
-            if(nZ > (cellSize*cellSize) / 2){
-                bitMatrix.at<uchar>(y,x) = 1;
-            }
-        }
+
+    // get datax, datay and dataz
+    QGenericMatrix<1,7,int> codeX;
+    QGenericMatrix<1,7,int> codeY;
+    QGenericMatrix<1,7,int> codeZ;
+
+    Mat cell;
+    int nZ = 0;
+
+    //==================================================
+    // data x
+
+    // p1
+    cell = markerMat(Rect((2)* cellSize,(1)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeX(0,0) = 1;
+    }else{
+        codeX(0,0) = 0;
     }
 
-    // check roations and calculate hamming distance for each rotation
-    Mat rotations[4];
-    int distances[4];
-
-    rotations[0] = bitMatrix;
-    distances[0] = hammDistMarker(rotations[0]);
-    pair<int,int> minDist(distances[0],0);
-
-    for(int i = 1; i < 4; i++){
-        rotations[i] = rotate(rotations[i-1]);
-        distances[i] = hammDistMarker(rotations[i]);
-        if(distances[i] < minDist.first){
-            minDist.first = distances[i];
-            minDist.second = i;
-        }
+    // p2
+    cell = markerMat(Rect((4)* cellSize,(1)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeX(1,0) = 1;
+    }else{
+        codeX(1,0) = 0;
     }
 
-    // if the smallest hamming distance is not 0
-    if(minDist.first != 0){
-        return -1;
+    // d1
+    cell = markerMat(Rect((3)* cellSize,(1)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeX(2,0) = 1;
+    }else{
+        codeX(2,0) = 0;
     }
+
+
+    // p3
+    cell = markerMat(Rect((1)* cellSize,(2)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeX(3,0) = 1;
+    }else{
+        codeX(3,0) = 0;
+    }
+
+    // d2
+    cell = markerMat(Rect((2)* cellSize,(2)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeX(4,0) = 1;
+    }else{
+        codeX(4,0) = 0;
+    }
+
+    // d3
+    cell = markerMat(Rect((3)* cellSize,(2)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeX(5,0) = 1;
+    }else{
+        codeX(5,0) = 0;
+    }
+
+    // d4
+    cell = markerMat(Rect((4)* cellSize,(2)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeX(6,0) = 1;
+    }else{
+        codeX(6,0) = 0;
+    }
+
+    //==================================================
+    // data y
+
+    // p1
+    cell = markerMat(Rect((5)* cellSize,(2)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeY(0,0) = 1;
+    }else{
+        codeY(0,0) = 0;
+    }
+
+    // p2
+    cell = markerMat(Rect((2)* cellSize,(3)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeY(1,0) = 1;
+    }else{
+        codeY(1,0) = 0;
+    }
+
+    // d1
+    cell = markerMat(Rect((1)* cellSize,(3)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeY(2,0) = 1;
+    }else{
+        codeY(2,0) = 0;
+    }
+
+
+    // p3
+    cell = markerMat(Rect((3)* cellSize,(3)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeY(3,0) = 1;
+    }else{
+        codeY(3,0) = 0;
+    }
+
+    // d2
+    cell = markerMat(Rect((4)* cellSize,(3)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeY(4,0) = 1;
+    }else{
+        codeY(4,0) = 0;
+    }
+
+    // d3
+    cell = markerMat(Rect((5)* cellSize,(3)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeY(5,0) = 1;
+    }else{
+        codeY(5,0) = 0;
+    }
+
+    // d4
+    cell = markerMat(Rect((1)* cellSize,(4)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeY(6,0) = 1;
+    }else{
+        codeY(6,0) = 0;
+    }
+
+    qDebug() << "data y =" << codeY;
+
+    //==================================================
+    // data z
+
+    // p1
+    cell = markerMat(Rect((2)* cellSize,(4)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeZ(0,0) = 1;
+    }else{
+        codeZ(0,0) = 0;
+    }
+
+    // p2
+    cell = markerMat(Rect((4)* cellSize,(4)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeZ(1,0) = 1;
+    }else{
+        codeZ(1,0) = 0;
+    }
+
+    // d1
+    cell = markerMat(Rect((3)* cellSize,(4)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeZ(2,0) = 1;
+    }else{
+        codeZ(2,0) = 0;
+    }
+
+
+    // p3
+    cell = markerMat(Rect((5)* cellSize,(4)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeZ(3,0) = 1;
+    }else{
+        codeZ(3,0) = 0;
+    }
+
+    // d2
+    cell = markerMat(Rect((2)* cellSize,(5)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeZ(4,0) = 1;
+    }else{
+        codeZ(4,0) = 0;
+    }
+
+    // d3
+    cell = markerMat(Rect((3)* cellSize,(5)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeZ(5,0) = 1;
+    }else{
+        codeZ(5,0) = 0;
+    }
+
+    // d4
+    cell = markerMat(Rect((4)* cellSize,(5)* cellSize,cellSize,cellSize));
+    nZ=countNonZero(cell);
+    if(nZ > (cellSize*cellSize) /2){
+        codeZ(6,0) = 1;
+    }else{
+        codeZ(6,0) = 0;
+    }
+
+    qDebug() << "data z =" << codeZ;
+
+
+    // correct errors...
+
 
     // calculate id
-    int id = 0;
-    Mat bits = rotations[minDist.second];
-    for(int y=0;y<5;y++){
-        id <<=1;
-        if ( bits.at<uchar>(y,1)) id|=1;
-        id<<=1;
-        if ( bits.at<uchar>(y,3)) id|=1;
-    }
+    int id = calculateId(codeX,codeY,codeZ);
 
     // get subpixel accuracy of marker position
     Size winSize = Size( 5, 5 );
@@ -258,33 +471,59 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
     return id;
 }
 
-int MarkerSearchEngine::hammDistMarker(Mat bits)
-{
-    int dist = 0;
-    int ids[4][5] = {{1,0,0,0,0},{1,0,1,1,1},{0,1,0,0,1},{0, 1, 1, 1, 0}};
-
-    for(int y=0;y<5;y++){
-        int minSum=1e5;
-        //hamming distance to each possible word
-        for(int p=0;p<4;p++){
-            int sum=0;
-            for(int x=0;x<5;x++)
-                sum+=  bits.at<uchar>(y,x) == ids[p][x] ? 0 : 1;
-            if (minSum>sum) minSum=sum;
-        }
-        dist+=minSum;
-    }
-    return dist;
-}
 
 Mat MarkerSearchEngine::rotate(Mat matrix)
 {
     Mat out = matrix.clone();
-    for(int i = 0; i < matrix.rows; i++){
-        for(int j = 0; j < matrix.cols; j++){
-            out.at<uchar>(i, j)=matrix.at<uchar>(matrix.cols-j-1, i);
+    int cellSize = 15;
+    // rotate maximal 4 times...
+    for(int i = 0; i < 4; i++){
+        // check the 2,2 cell...if its white, we have the right orientation, if not...rotate 90 deg and check again.
+        Mat roi = out(Rect(cellSize,cellSize,cellSize,cellSize));
+        int nZ=countNonZero(roi);
+        if(nZ > (cellSize*cellSize) /2){
+            // if more than the half white...we have our orientation.
+            return out;
+        }else{
+            // rotate 90 deg
+            int len = std::max(out.cols, out.rows);
+            Point2f pt(len/2., len/2.);
+            Mat r = getRotationMatrix2D(pt, 90, 1.0);
+            warpAffine(out, out, r, Size(len, len));
+
         }
+
     }
     return out;
 }
+
+QGenericMatrix<1,7,int> MarkerSearchEngine::correctCode(QGenericMatrix<1,7,int> code)
+{
+
+}
+
+int MarkerSearchEngine::calculateId(QGenericMatrix<1, 7, int> codeX, QGenericMatrix<1, 7, int> codeY, QGenericMatrix<1, 7, int> codeZ)
+{
+    // [p1, p2, d1, p3, d2, d3, d4]^T
+    QByteArray binCode;
+    binCode.append(QByteArray::number(codeX(2,0)));
+    binCode.append(QByteArray::number(codeX(4,0)));
+    binCode.append(QByteArray::number(codeX(5,0)));
+    binCode.append(QByteArray::number(codeX(6,0)));
+
+    binCode.append(QByteArray::number(codeY(2,0)));
+    binCode.append(QByteArray::number(codeY(4,0)));
+    binCode.append(QByteArray::number(codeY(5,0)));
+    binCode.append(QByteArray::number(codeY(6,0)));
+
+    binCode.append(QByteArray::number(codeZ(2,0)));
+    binCode.append(QByteArray::number(codeZ(4,0)));
+    binCode.append(QByteArray::number(codeZ(5,0)));
+    binCode.append(QByteArray::number(codeZ(6,0)));
+
+    //qDebug() << "Id = " << binCode << "=" << binCode.toInt(0,2);
+    return binCode.toInt(0,2);
+
+}
+
 

@@ -124,6 +124,9 @@ void ImageProcessor::saveCalibrationParameter(Mat intrinsic, Mat extrinsic)
 
     m_calibrated = true;
 
+    Core::instance()->window()->writeToTerminal("----------------------------------------");
+    Core::instance()->window()->writeToTerminal("calibration parameter saved....");
+    Core::instance()->window()->writeToTerminal("----------------------------------------");
 }
 
 void ImageProcessor::loadSettings()
@@ -221,6 +224,10 @@ void ImageProcessor::loadSettings()
     }else{
         m_calibrated = false;
     }
+
+    Core::instance()->window()->writeToTerminal("----------------------------------------");
+    Core::instance()->window()->writeToTerminal("settings loaded...");
+    Core::instance()->window()->writeToTerminal("----------------------------------------");
 }
 
 void ImageProcessor::processImage()
@@ -372,11 +379,13 @@ void ImageProcessor::setFps(const int &fps)
 void ImageProcessor::startProcessor()
 {
     m_timer->start();
-    qDebug() << "image processor started.";
+    Core::instance()->window()->writeToTerminal("image processor started.");
+    Core::instance()->window()->writeToTerminal("----------------------------------------");
 }
 
 void ImageProcessor::stopProcessor()
 {
     m_timer->stop();
-    qDebug() << "image processor stopped.";
+    Core::instance()->window()->writeToTerminal("image processor stopped.");
+    Core::instance()->window()->writeToTerminal("----------------------------------------");
 }

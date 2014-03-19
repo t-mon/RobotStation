@@ -12,6 +12,8 @@
 #include <QFileDialog>
 #include <QPushButton>
 
+#include <QGenericMatrix>
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -41,7 +43,10 @@ private:
     Mat m_codeMat;
     QImage m_codeImage;
 
+    QByteArray getBinCode();
+    QGenericMatrix<1,7,int> encode(QByteArray code);
 
+    
 private slots:
     void saveImage();
     void idChanged(const int &id);
