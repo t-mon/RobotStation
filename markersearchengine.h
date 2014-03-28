@@ -27,6 +27,7 @@ public:
     void drawMarkers(Mat &image, QList<Marker> markerList);
 
 private:
+    Mat m_undistortMat;
     Mat m_grayMat;
     Mat m_resultMat;
 
@@ -34,12 +35,15 @@ private:
     vector<vector<Point2f> > m_rectangleList;
 
     void findRectangles();
+    void drawRectangel(Mat &image, vector<Point2f> rectangle);
     int decodeMarker(vector<Point2f> rectangle);
     Mat rotate(Mat matrix);
 
     QGenericMatrix<1,7,int> correctCode(QGenericMatrix<1,7,int> code);
     int calculateId(QGenericMatrix<1,7,int> codeX, QGenericMatrix<1,7,int> codeY, QGenericMatrix<1,7,int> codeZ);
     
+    bool m_debug;
+
 signals:
 
 public slots:

@@ -2,6 +2,7 @@
 #define MARKER_H
 
 #include <QObject>
+#include <QMatrix4x4>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -24,6 +25,9 @@ public:
     void setId(const int &id);
     int id() const;
 
+    void setTransformationMatrix(const QMatrix4x4 &matrix);
+    QMatrix4x4 transformationMatrix();
+
 private:
     Point2f m_p1;
     Point2f m_p2;
@@ -32,7 +36,7 @@ private:
 
     Point2f m_center;
     int m_id;
-
+    QMatrix4x4 m_transformationMatrix;
 };
 
 #endif // MARKER_H

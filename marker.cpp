@@ -44,3 +44,13 @@ int Marker::id() const
 {
     return m_id;
 }
+
+void Marker::setTransformationMatrix(const QMatrix4x4 &matrix)
+{
+    m_transformationMatrix = matrix;
+}
+
+QMatrix4x4 Marker::transformationMatrix()
+{
+    return m_transformationMatrix;
+}

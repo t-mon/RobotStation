@@ -70,12 +70,12 @@ void CalibrationDialog::init()
 {
     m_calibrationImages = 30;
 
-    m_sideLenght = 30; // [mm]
+    m_sideLenght = 25; // [mm]
 
     m_patternSize       = Size(9,6);
     m_cornersNumber     = m_patternSize.height * m_patternSize.height;
 
-    // Calculate the object points in the object co-ordinate system (origin at top left corner)
+    // Calculate the object points in the object coordinate system (origin at top left corner)
     for(int x = 0; x < m_calibrationImages; x++){
         vector<Point3f> objectPoints;
         for(int i = 0; i < m_patternSize.height; i++) {

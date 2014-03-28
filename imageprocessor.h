@@ -13,7 +13,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include <markersearchengine.h>
+#include "poseestimationengine.h"
 
 using namespace cv;
 
@@ -22,9 +22,13 @@ class ImageProcessor : public QObject
     Q_OBJECT
 public:
     explicit ImageProcessor(QObject *parent = 0);
+
     Mat convertQImageToMat(QImage image);
     QImage convertMatToQimage(Mat imageMat);
+
     void saveCalibrationParameter(Mat intrinsic, Mat extrinsic);
+    Mat getIntrinsic();
+    Mat getExtrinsic();
 
 private:
     QTimer *m_timer;
@@ -42,7 +46,7 @@ private:
     double m_alpha;
     double m_beta;
 
-    MarkerSearchEngine *m_markerSearchEngine;
+    PoseEstimationEngine *m_poseEngine;
 
     void loadSettings();
 

@@ -8,8 +8,7 @@ ImageProcessor::ImageProcessor(QObject *parent) :
 
     m_timer = new QTimer(this);
     m_timer->setInterval(30);
-
-    m_markerSearchEngine = new MarkerSearchEngine(this);
+    m_poseEngine = new PoseEstimationEngine(this);
 
     connect(m_timer,SIGNAL(timeout()),this,SLOT(processImage()));
 }
@@ -127,6 +126,24 @@ void ImageProcessor::saveCalibrationParameter(Mat intrinsic, Mat extrinsic)
     Core::instance()->window()->writeToTerminal("----------------------------------------");
     Core::instance()->window()->writeToTerminal("calibration parameter saved....");
     Core::instance()->window()->writeToTerminal("----------------------------------------");
+}
+
+Mat ImageProcessor::getIntrinsic()
+{
+    if(m_calibrated){
+        return m_intrinsic;
+    }else{
+        return Mat::zeros(0,0,CV_64F);
+    }
+}
+
+Mat ImageProcessor::getExtrinsic()
+{
+    if(m_calibrated){
+        return m_extrinsic;
+    }else{
+        return Mat::zeros(0,0,CV_64F);
+    }
 }
 
 void ImageProcessor::loadSettings()
@@ -282,7 +299,7 @@ void ImageProcessor::processImage()
     }
     case 5:{
         cvtColor(image, image, CV_BGR2GRAY);
-        adaptiveThreshold(image, image, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 7, 7);
+        adaptiveThreshold(image, image, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 9, 9);
         break;
     }
     case 6:{
@@ -292,15 +309,17 @@ void ImageProcessor::processImage()
         break;
     }
     case 7:{
-        QList<Marker> markerList = m_markerSearchEngine->searchMarker(image);
-        m_markerSearchEngine->drawMarkers(image,markerList);
+        m_poseEngine->updateImage(image);
         break;
     }
     default:
         break;
     }
 
-    Core::instance()->window()->updateImage(convertMatToQimage(image));
+    QImage imageToShow = convertMatToQimage(image);
+    Core::instance()->window()->updateImage(imageToShow.mirrored(false,false));
+
+//    Core::instance()->window()->updateImage(imageToShow.mirrored(true,false));
 }
 
 void ImageProcessor::updateImage(const Mat &image)

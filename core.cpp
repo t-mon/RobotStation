@@ -25,6 +25,7 @@ void Core::init()
 
     m_window->show();
     m_cameraEngine->startEngine();
+
 }
 
 ImageProcessor *Core::imageProcessor()

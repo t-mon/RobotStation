@@ -3,7 +3,7 @@
 MarkerSearchEngine::MarkerSearchEngine(QObject *parent) :
     QObject(parent)
 {
-
+    m_debug = false;
 }
 
 QList<Marker> MarkerSearchEngine::searchMarker(Mat &undistortMat)
@@ -12,7 +12,8 @@ QList<Marker> MarkerSearchEngine::searchMarker(Mat &undistortMat)
     m_rectangleList.clear();
     m_markerList.clear();
 
-    cvtColor(undistortMat,m_grayMat,CV_BGR2GRAY);
+    m_undistortMat = undistortMat;
+    cvtColor(m_undistortMat,m_grayMat,CV_BGR2GRAY);
 
     // first find all rectangles
     findRectangles();
@@ -21,24 +22,11 @@ QList<Marker> MarkerSearchEngine::searchMarker(Mat &undistortMat)
     foreach (const vector<Point2f> rectangle, m_rectangleList){
         decodeMarker(rectangle);
     }
-
-    if(m_markerList.size() != 0){
-        qDebug() << "found" << m_markerList.size() << "marker";
-        foreach (const Marker &marker, m_markerList){
-            qDebug() << "id: " << marker.id();
-            //            qDebug() << "   p1 = (" << marker.p1().x << "," << marker.p1().y << ")";
-            //            qDebug() << "   p2 = (" << marker.p2().x << "," << marker.p2().y << ")";
-            //            qDebug() << "   p3 = (" << marker.p3().x << "," << marker.p3().y << ")";
-            //            qDebug() << "   p4 = (" << marker.p4().x << "," << marker.p4().y << ")";
-        }
-        qDebug() << "-----------------------------------------";
-    }
     return m_markerList;
 }
 
 void MarkerSearchEngine::drawMarkers(Mat &image, QList<Marker> markerList)
 {
-
     int fontFace = FONT_HERSHEY_SCRIPT_SIMPLEX;
     double fontScale = 0.6;
     int thickness = 2;
@@ -63,23 +51,32 @@ void MarkerSearchEngine::drawMarkers(Mat &image, QList<Marker> markerList)
         // draw center point
         circle(image,marker.center(),3,Scalar(0,0,255),1,8);
 
-        // write id as text to center of marker
+        // draw center of image
+        //        circle(image,Point2f(image.cols/2, image.rows/2),1,Scalar(0,0,255),3,8);
+
+        //write id as text to center of marker
         string text = QString::number(marker.id()).toStdString();
         Point2f drawPoint = Point2f(marker.center().x+20,marker.center().y);
-        putText(image, text, drawPoint, fontFace, fontScale, Scalar(0, 255, 255), thickness, 8);
+        putText(image, text, drawPoint, fontFace, fontScale, Scalar(130, 255, 80), thickness, 8);
+
+        if(m_debug){
+            imwrite("/home/timon/algorithmus_result.png",image);
+        }
+
     }
 }
 
 void MarkerSearchEngine::findRectangles()
 {
     // Adaptive threshold
-    Mat tmp;
-    adaptiveThreshold(m_grayMat, tmp, 255,ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 7, 7);
+    Mat adaptiveMat;
+    adaptiveThreshold(m_grayMat, adaptiveMat, 255,ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 9, 9);
 
     // find contours
+    Mat contourImage = adaptiveMat.clone();
     vector<vector<Point> > allContours;
     vector<Vec4i> hierarchy;
-    findContours(tmp, allContours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+    findContours(contourImage, allContours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
     // filter small contours away
     int minContourSizeAllowed = 15;
@@ -146,6 +143,55 @@ void MarkerSearchEngine::findRectangles()
             m_rectangleList.push_back(rectangle);
         }
     }
+
+    if(m_debug){
+        //===================================================================
+        imwrite("/home/timon/algorithmus_0.png",m_undistortMat);
+
+        //===================================================================
+        imwrite("/home/timon/algorithmus_1.png",m_grayMat);
+
+        //===================================================================
+        // draw adaptiv threshold image
+        imwrite("/home/timon/algorithmus_2.png",adaptiveMat);
+
+        //===================================================================
+        // Draw all contours
+        Mat allContourImage = Mat::zeros( m_grayMat.size(), CV_8UC3 );
+        for(uint i = 0; i< allContours.size(); i++){
+            drawContours( allContourImage, allContours, i, Scalar(0,0,255), 1, 8, hierarchy, 0, Point() );
+        }
+        imwrite("/home/timon/algorithmus_3.png",allContourImage);
+
+        //===================================================================
+        // Draw contours
+        Mat contourImage = Mat::zeros( m_grayMat.size(), CV_8UC3 );
+        for(uint i = 0; i< contours.size(); i++){
+            drawContours( contourImage, contours, i, Scalar(0,0,255), 1, 8, hierarchy, 0, Point() );
+        }
+        imwrite("/home/timon/algorithmus_4.png",contourImage);
+
+        //===================================================================
+        // Draw all rectangles
+        Mat rectangleImage = m_undistortMat.clone();
+        for(uint i = 0; i< m_rectangleList.size(); i++){
+            drawRectangel(rectangleImage,m_rectangleList.at(i));
+        }
+        imwrite("/home/timon/algorithmus_5.png",rectangleImage);
+
+    }
+
+}
+
+void MarkerSearchEngine::drawRectangel(Mat &image, vector<Point2f> rectangle)
+{
+    for(uint i = 0; i< 4; i++){
+        line(image,rectangle.at(0),rectangle.at(1),Scalar(0,255,0),1,8);
+        line(image,rectangle.at(1),rectangle.at(2),Scalar(0,255,0),1,8);
+        line(image,rectangle.at(2),rectangle.at(3),Scalar(0,255,0),1,8);
+        line(image,rectangle.at(3),rectangle.at(0),Scalar(0,255,0),1,8);
+
+    }
 }
 
 int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
@@ -190,12 +236,12 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
         }
     }
 
+    if(m_debug){
+        imwrite("/home/timon/algorithmus_6.png",markerMat);
+    }
 
     //Rotate in readable orientation
     markerMat = rotate(markerMat);
-    //imwrite("/home/timon/marker.jpg",markerMat);
-
-
 
     /*  |-----|-----|-----|-----|-----|-----|-----|
      *  |  0  |  0  |  0  |  0  |  0  |  0  |  0  |
@@ -405,7 +451,6 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
         codeZ(2,0) = 0;
     }
 
-
     // p3
     cell = markerMat(Rect((5)* cellSize,(4)* cellSize,cellSize,cellSize));
     nZ=countNonZero(cell);
@@ -442,8 +487,6 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
         codeZ(6,0) = 0;
     }
 
-    //qDebug() << "data z =" << codeZ;
-
     // calculate id
     int id = calculateId(codeX,codeY,codeZ);
 
@@ -453,13 +496,31 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
     TermCriteria criteria = cvTermCriteria(CV_TERMCRIT_ITER ,30 ,0.01);
     cornerSubPix(m_grayMat, rectangle, winSize, zeroZone, criteria);
 
-    // get center point...
-    Moments m = moments(rectangle,false);
-    Point2f centerPoint = Point2f(m.m10/m.m00, m.m01/m.m00);
-
     // save marker...
     Marker finalMarker = Marker(rectangle.at(0),rectangle.at(1),rectangle.at(3),rectangle.at(2));
     finalMarker.setId(id);
+
+    // get center point...
+    //    Moments m = moments(rectangle,false);
+    //    Point2f centerPoint = Point2f(m.m10/m.m00, m.m01/m.m00);
+
+    float a1 = finalMarker.p3().x - finalMarker.p1().x;
+    float b1 = finalMarker.p3().y - finalMarker.p1().y;
+    float a2 = finalMarker.p4().x - finalMarker.p2().x;
+    float b2 = finalMarker.p4().y - finalMarker.p2().y;
+
+    float s = (a1*finalMarker.p2().y - a1*finalMarker.p1().y - b1*finalMarker.p2().x + b1*finalMarker.p1().x) / (b1*a2 - b2*a1);
+    float t = (finalMarker.p2().x + s*a2 -finalMarker.p1().x)/(a1);
+
+    Point2f centerPoint1 = finalMarker.p1() + t * (finalMarker.p3() - finalMarker.p1());
+    Point2f centerPoint2 = finalMarker.p2() + s * (finalMarker.p4() - finalMarker.p2());
+
+    // centerPoint1 and centerPoint2 have to be equal...otherwise there is no center
+    // if we have a small error from floating overload...compensate it with average x- and y- value
+    Point2f centerPoint;
+    centerPoint.x = (centerPoint1.x + centerPoint2.x) / 2;
+    centerPoint.y = (centerPoint1.y + centerPoint2.y) / 2;
+
     finalMarker.setCenter(centerPoint);
 
     // save marker with id...
@@ -470,11 +531,12 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
 
 Mat MarkerSearchEngine::rotate(Mat matrix)
 {
+
     Mat out = matrix.clone();
     int cellSize = 15;
     // rotate maximal 4 times...
     for(int i = 0; i < 4; i++){
-        // check the 2,2 cell...if its white, we have the right orientation, if not...rotate 90 deg and check again.
+        // check the (2,2) cell...if its white, we have the right orientation, if not...rotate 90 deg and check again.
         Mat roi = out(Rect(cellSize,cellSize,cellSize,cellSize));
         int nZ=countNonZero(roi);
         if(nZ > (cellSize*cellSize) /2){
@@ -486,9 +548,7 @@ Mat MarkerSearchEngine::rotate(Mat matrix)
             Point2f pt(len/2., len/2.);
             Mat r = getRotationMatrix2D(pt, 90, 1.0);
             warpAffine(out, out, r, Size(len, len));
-
         }
-
     }
     return out;
 }
@@ -508,6 +568,7 @@ QGenericMatrix<1,7,int> MarkerSearchEngine::correctCode(QGenericMatrix<1,7,int> 
     for(int i = 0; i < 3; i++){
         syndrome(i,0) = syndrome(i,0) %2;
     }
+
     // if the z vector is 0 -> pairity ok! no errors in transmission
     // TODO: correct error if there is one...
     //qDebug() << "parity check -> syndrome = " << syndrome;

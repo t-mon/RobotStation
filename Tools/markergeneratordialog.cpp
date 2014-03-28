@@ -1,12 +1,15 @@
 #include "markergeneratordialog.h"
 #include "core.h"
 
+#include <QIcon>
+
 MarkerGeneratorDialog::MarkerGeneratorDialog(QWidget *parent) :
     QDialog(parent)
 {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     setWindowTitle("Marker generator...");
-    
+    setWindowIcon(QIcon(":/icons/markergenerator-icon.png"));
+
     // Image
     m_imageLabel = new QLabel(this);
     m_imageLabel->setAutoFillBackground(true);
@@ -15,8 +18,8 @@ MarkerGeneratorDialog::MarkerGeneratorDialog(QWidget *parent) :
     // ID
     m_id = 0;
     QHBoxLayout *codeLayout = new QHBoxLayout();
-    m_idLabel = new QLabel(tr("0"),this);
-    m_idLabel->setFixedWidth(100);
+    m_idLabel = new QLabel(tr("ID: 0"),this);
+    m_idLabel->setFixedWidth(120);
     
     m_idSlider = new QSlider(Qt::Horizontal,this);
     m_idSlider->setMinimum(0);
@@ -35,8 +38,8 @@ MarkerGeneratorDialog::MarkerGeneratorDialog(QWidget *parent) :
     m_imageSize = 700;
     
     QHBoxLayout *sizeLayout = new QHBoxLayout();
-    m_sizeLabel = new QLabel(tr("700x700"),this);
-    m_sizeLabel->setFixedWidth(100);
+    m_sizeLabel = new QLabel(tr("Size: 700x700"),this);
+    m_sizeLabel->setFixedWidth(120);
     
     m_sizeSlider = new QSlider(Qt::Horizontal,this);
     m_sizeSlider->setMinimum(7);
@@ -105,7 +108,6 @@ QGenericMatrix<1, 7, int> MarkerGeneratorDialog::encode(QByteArray code)
         encoded(i,0) = encoded(i,0) %2;
     }
 
-
     qDebug() << code << "encoded =" << encoded;
     return encoded;
 }
@@ -146,8 +148,8 @@ void MarkerGeneratorDialog::imageSizeChaged(const int &imageSize)
 
 void MarkerGeneratorDialog::updateImage()
 {
-    m_idLabel->setText(QString::number(m_id));
-    m_sizeLabel->setText(QString::number(m_imageSize) + "x" + QString::number(m_imageSize));
+    m_idLabel->setText("ID: " + QString::number(m_id));
+    m_sizeLabel->setText("Size: " + QString::number(m_imageSize) + "x" + QString::number(m_imageSize));
 
 
     /*  Code word -> | Dx1 | Dx2 | Dx3 | Dx4 | Dy1 | Dy2 | Dy3 | Dy4 | Dz1 | Dz2 | Dz3 | Dz4 | = 2^12 = maximal 4096
@@ -168,7 +170,7 @@ void MarkerGeneratorDialog::updateImage()
     QByteArray datay=bin.mid(4,4);
     QByteArray dataz=bin.right(4);
 
-    qDebug() << "bin codes -> " << datax << datay << dataz;
+    qDebug() << m_id << "bin code -> " << datax << datay << dataz;
 
     // [p1, p2, d1, p3, d2, d3, d4]^T
 
