@@ -13,7 +13,7 @@ MarkerGeneratorDialog::MarkerGeneratorDialog(QWidget *parent) :
     // Image
     m_imageLabel = new QLabel(this);
     m_imageLabel->setAutoFillBackground(true);
-    m_imageLabel->setFixedSize(500,500);
+    m_imageLabel->setFixedSize(497,497);
     
     // ID
     m_id = 0;

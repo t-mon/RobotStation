@@ -5,24 +5,18 @@ PoseEstimationEngine::PoseEstimationEngine(QObject *parent) :
     QObject(parent)
 {
     m_markerSearchEngine = new MarkerSearchEngine(this);
-    m_markerSize = 50; //[mm]
 }
 
 void PoseEstimationEngine::updateImage(Mat &image)
 {
-    m_imageWidth = image.cols;
-    m_imageHeight = image.rows;
+    m_markerList.clear();
+    m_markerList = m_markerSearchEngine->searchMarker(image);
 
-    QList<Marker> markerList = m_markerSearchEngine->searchMarker(image);
-    m_markerSearchEngine->drawMarkers(image,markerList);
-
-    if(markerList.count() != 0){
+    if(m_markerList.count() != 0){
         qDebug() << "========================================";
-        qDebug() << "found " << markerList.count() << "marker";
+        qDebug() << "found " << m_markerList.count() << "marker";
         qDebug() << "----------------------------------------";
-        foreach (const Marker &marker, markerList){
-            vector<Point2f> coordinateSystem = estimateMarkerPosition(marker);
-            drawCoordinateSystem(image,marker.center(),coordinateSystem);
+        foreach (const Marker &marker, m_markerList){
             qDebug() << "ID             = " << marker.id();
             qDebug() << "Center Point   = (" << marker.center().x << "," << marker.center().y << ")";
             qDebug() << "----------------------------------------";
@@ -31,36 +25,77 @@ void PoseEstimationEngine::updateImage(Mat &image)
         // if we have found 4 Marker in the image...
         // make the same with a rectangle of the 4 marker center and estiate position
 
-        if(markerList.count() == 4){
-            // first check if we have found our 4 marker
+        if(m_markerList.count() == 4){
 
+            // check if we have found the right markers for our detection
+            foreach (Marker marker, m_markerList) {
+                if(marker.id() != 111 && marker.id() != 222 && marker.id() != 333 && marker.id() != 444){
+                    return;
+                }
+            }
 
+            m_robotSystemTransformationMatrix = estimateRobotPosition();
+
+            m_robotSystemCenter = calculateCoordinateSystemCenter(m_markerPoints.at(0), m_markerPoints.at(1), m_markerPoints.at(2), m_markerPoints.at(3));
+            drawRobotCoordinateSystem(image,m_robotSystemCenter,m_robotSystemCoordinatePoints);
         }
     }
 }
 
-vector<Point2f> PoseEstimationEngine::estimateMarkerPosition(Marker marker)
+QMatrix4x4 PoseEstimationEngine::estimateRobotPosition()
 {
-    // set object points (virtual marker in the center of the image wit a side leght of m_markerSize)
+    QMatrix4x4 transformationMatrix;
+    transformationMatrix.setToIdentity();
+
+    // Model points of marker center points
+    /*
+     *   |----- 220 [mm] ----|
+     *
+     *  111-----------------444  --
+     *   |                   |    |
+     *   |                   |    |
+     *   |                   |   130 [mm]
+     *   |                   |    |
+     *   |                   |    |
+     *  222-----------------333  --
+     *
+     */
+
+    float width  = 220;   // [mm]
+    float height = 130;   // [mm]
+
     vector<Point3f> objectPoints;
+    objectPoints.push_back(Point3f( -width/2, -height/2, 0));    // 111
+    objectPoints.push_back(Point3f( -width/2,  height/2, 0));    // 222
+    objectPoints.push_back(Point3f(  width/2,  height/2, 0));    // 333
+    objectPoints.push_back(Point3f(  width/2, -height/2, 0));    // 444
 
-    objectPoints.push_back(Point3f( -m_markerSize/2, -m_markerSize/2, 0));
-    objectPoints.push_back(Point3f( -m_markerSize/2,  m_markerSize/2, 0));
-    objectPoints.push_back(Point3f(  m_markerSize/2,  m_markerSize/2, 0));
-    objectPoints.push_back(Point3f(  m_markerSize/2, -m_markerSize/2, 0));
+    m_markerPoints.clear();
 
-    // set image points (detected marker corners)
-    vector<Point2f> imagePoints;
-    imagePoints.push_back(marker.p1());
-    imagePoints.push_back(marker.p2());
-    imagePoints.push_back(marker.p3());
-    imagePoints.push_back(marker.p4());
+    // copy marker center points to the image points vector
+    foreach(Marker marker, m_markerList){
+        if(marker.id() == 111){
+            m_markerPoints.push_back(marker.center());
+        }
+    }
+    foreach(Marker marker, m_markerList){
+        if(marker.id() == 222){
+            m_markerPoints.push_back(marker.center());
+        }
+    }
+    foreach(Marker marker, m_markerList){
+        if(marker.id() == 333){
+            m_markerPoints.push_back(marker.center());
+        }
+    }
+    foreach(Marker marker, m_markerList){
+        if(marker.id() == 444){
+            m_markerPoints.push_back(marker.center());
+        }
+    }
 
-    // set coordinate system points
-    vector<Point3f> coordinateSytemPoints;
-    coordinateSytemPoints.push_back(Point3f(m_markerSize/2, 0, 0)); // x-axis
-    coordinateSytemPoints.push_back(Point3f(0, m_markerSize/2, 0)); // y-axis
-    coordinateSytemPoints.push_back(Point3f(0, 0, m_markerSize/2)); // z-axis
+    vector<Point2f> imagePoints = m_markerPoints;
+
 
     // get calibration parameters
     Mat intrinsic = Core::instance()->imageProcessor()->getIntrinsic();
@@ -73,9 +108,6 @@ vector<Point2f> PoseEstimationEngine::estimateMarkerPosition(Marker marker)
 
     Mat rotationOutput;
     Mat translationOutput;
-
-    QMatrix4x4 transformationMatrix;
-    transformationMatrix.setToIdentity();
 
     // Magic...? TODO: understand
     solvePnP(objectPoints,imagePoints,intrinsic,extrinsic,rotationOutput,translationOutput);
@@ -102,20 +134,47 @@ vector<Point2f> PoseEstimationEngine::estimateMarkerPosition(Marker marker)
     transformationMatrix = transformationMatrix.inverted();
     //qDebug() << "---------------------------------\n transformationMatrix = " << transformationMatrix;
 
-    marker.setTransformationMatrix(transformationMatrix);
+    // calculate robot coodinate system points for dawing
+    // set coordinate system points
+    vector<Point3f> coordinateSytemPoints;
+    coordinateSytemPoints.push_back(Point3f(80, 0, 0)); // x-axis
+    coordinateSytemPoints.push_back(Point3f(0, 80, 0)); // y-axis
+    coordinateSytemPoints.push_back(Point3f(0, 0, 80)); // z-axis
 
-    // calculate coodinate system points for dawing
     vector<Point2f> imageCoordinateSystemPoints;
     projectPoints(coordinateSytemPoints,rotationVector,translationVector,intrinsic,extrinsic,imageCoordinateSystemPoints);
+    m_robotSystemCoordinatePoints = imageCoordinateSystemPoints;
 
-    return imageCoordinateSystemPoints;
+    return transformationMatrix;
 }
 
-void PoseEstimationEngine::drawCoordinateSystem(Mat &img, Point2f markerCenter, vector<Point2f> coordinateSystemPoints)
+void PoseEstimationEngine::drawRobotCoordinateSystem(Mat &img, Point2f center, vector<Point2f> coordinateSystemPoints)
 {
-    line(img,markerCenter, coordinateSystemPoints.at(0),Scalar(0,0,255),2,8);   // x-axis
-    line(img,markerCenter, coordinateSystemPoints.at(1),Scalar(0,255,0),2,8);   // y-axis
-    line(img,markerCenter, coordinateSystemPoints.at(2),Scalar(255,0,0),2,8);   // z-axis
+    line(img,center, coordinateSystemPoints.at(0),Scalar(0,0,255),2,8);   // x-axis
+    line(img,center, coordinateSystemPoints.at(1),Scalar(0,255,0),2,8);   // y-axis
+    line(img,center, coordinateSystemPoints.at(2),Scalar(255,0,0),2,8);   // z-axis
+}
+
+Point2f PoseEstimationEngine::calculateCoordinateSystemCenter(Point2f p1, Point2f p2, Point2f p3, Point2f p4)
+{
+    float a1 = p3.x - p1.x;
+    float b1 = p3.y - p1.y;
+    float a2 = p4.x - p2.x;
+    float b2 = p4.y - p2.y;
+
+    float s = (a1*p2.y - a1*p1.y - b1*p2.x + b1*p1.x) / (b1*a2 - b2*a1);
+    float t = (p2.x + s*a2 -p1.x)/(a1);
+
+    Point2f centerPoint1 = p1 + t * (p3 - p1);
+    Point2f centerPoint2 = p2 + s * (p4 - p2);
+
+    // centerPoint1 and centerPoint2 have to be equal...otherwise there is no center
+    // if we have a small error from floating overload...compensate it with average x- and y- value
+    Point2f centerPoint;
+    centerPoint.x = (centerPoint1.x + centerPoint2.x) / 2;
+    centerPoint.y = (centerPoint1.y + centerPoint2.y) / 2;
+
+    return centerPoint;
 }
 
 

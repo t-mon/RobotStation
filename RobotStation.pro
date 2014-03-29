@@ -32,7 +32,7 @@ SOURCES += main.cpp\
         Tools/qrcodesearchdialog.cpp \
         marker.cpp \
         Tools/markersearchdialog.cpp \
-    poseestimationengine.cpp
+        poseestimationengine.cpp
 
 HEADERS  += mainwindow.h \
         core.h \
@@ -45,7 +45,7 @@ HEADERS  += mainwindow.h \
         Tools/qrcodesearchdialog.h \
         marker.h \
         Tools/markersearchdialog.h \
-    poseestimationengine.h
+        poseestimationengine.h
 
 OTHER_FILES +=
 

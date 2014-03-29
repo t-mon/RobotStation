@@ -1,4 +1,5 @@
 #include "markersearchengine.h"
+#include "core.h"
 
 MarkerSearchEngine::MarkerSearchEngine(QObject *parent) :
     QObject(parent)
@@ -59,11 +60,20 @@ void MarkerSearchEngine::drawMarkers(Mat &image, QList<Marker> markerList)
         Point2f drawPoint = Point2f(marker.center().x+20,marker.center().y);
         putText(image, text, drawPoint, fontFace, fontScale, Scalar(130, 255, 80), thickness, 8);
 
+        drawMarkerCoordinateSystem(image,marker.center(),marker.coordinateSystemPoints());
+
         if(m_debug){
             imwrite("/home/timon/algorithmus_result.png",image);
         }
 
     }
+}
+
+void MarkerSearchEngine::drawMarkerCoordinateSystem(Mat &img, Point2f markerCenter, vector<Point2f> coordinateSystemPoints)
+{
+    line(img, markerCenter, coordinateSystemPoints.at(0),Scalar(0,0,255),2,8);   // x-axis
+    line(img, markerCenter, coordinateSystemPoints.at(1),Scalar(0,255,0),2,8);   // y-axis
+    line(img, markerCenter, coordinateSystemPoints.at(2),Scalar(255,0,0),2,8);   // z-axis
 }
 
 void MarkerSearchEngine::findRectangles()
@@ -190,7 +200,6 @@ void MarkerSearchEngine::drawRectangel(Mat &image, vector<Point2f> rectangle)
         line(image,rectangle.at(1),rectangle.at(2),Scalar(0,255,0),1,8);
         line(image,rectangle.at(2),rectangle.at(3),Scalar(0,255,0),1,8);
         line(image,rectangle.at(3),rectangle.at(0),Scalar(0,255,0),1,8);
-
     }
 }
 
@@ -242,6 +251,10 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
 
     //Rotate in readable orientation
     markerMat = rotate(markerMat);
+
+    if(m_rotationCounter == 4){
+        return -1;
+    }
 
     /*  |-----|-----|-----|-----|-----|-----|-----|
      *  |  0  |  0  |  0  |  0  |  0  |  0  |  0  |
@@ -523,15 +536,22 @@ int MarkerSearchEngine::decodeMarker(vector<Point2f> rectangle)
 
     finalMarker.setCenter(centerPoint);
 
-    // save marker with id...
+    // calculate 3D position
+    QMatrix4x4 tMatrix = estimateMarkerPose(rotateMarkerPoints(finalMarker));
+    finalMarker.setTransformationMatrix(tMatrix);
+
+    finalMarker.setCoordinateSystemPoints(m_coordinateSystemPoints);
+
+    // save marker with id...and rotate points for correct orientation
     m_markerList.push_back(finalMarker);
+
     return id;
 }
 
 
 Mat MarkerSearchEngine::rotate(Mat matrix)
 {
-
+    m_rotationCounter = 0;
     Mat out = matrix.clone();
     int cellSize = 15;
     // rotate maximal 4 times...
@@ -544,6 +564,7 @@ Mat MarkerSearchEngine::rotate(Mat matrix)
             return out;
         }else{
             // rotate 90 deg
+            m_rotationCounter++;
             int len = std::max(out.cols, out.rows);
             Point2f pt(len/2., len/2.);
             Mat r = getRotationMatrix2D(pt, 90, 1.0);
@@ -551,6 +572,23 @@ Mat MarkerSearchEngine::rotate(Mat matrix)
         }
     }
     return out;
+}
+
+Marker MarkerSearchEngine::rotateMarkerPoints(Marker marker)
+{
+    Marker newMarker = marker;
+    if(m_rotationCounter == 0){
+        return marker;
+    }
+    for(int i = 0; i < m_rotationCounter; i++){
+        newMarker.setP1(marker.p2());
+        newMarker.setP2(marker.p3());
+        newMarker.setP3(marker.p4());
+        newMarker.setP4(marker.p1());
+        marker = newMarker;
+    }
+    newMarker.setRotation(m_rotationCounter);
+    return newMarker;
 }
 
 QGenericMatrix<1,7,int> MarkerSearchEngine::correctCode(QGenericMatrix<1,7,int> code)
@@ -600,6 +638,79 @@ int MarkerSearchEngine::calculateId(QGenericMatrix<1, 7, int> codeX, QGenericMat
 
     //qDebug() << "Id = " << binCode << "=" << binCode.toInt(0,2);
     return binCode.toInt(0,2);
+}
+
+QMatrix4x4 MarkerSearchEngine::estimateMarkerPose(Marker marker)
+{
+    float markerSize = 50; // [mm]
+
+    // set object points (virtual marker in the center of the image wit a side leght of markerSize)
+    vector<Point3f> objectPoints;
+    objectPoints.push_back(Point3f( -markerSize/2, -markerSize/2, 0));
+    objectPoints.push_back(Point3f( -markerSize/2,  markerSize/2, 0));
+    objectPoints.push_back(Point3f(  markerSize/2,  markerSize/2, 0));
+    objectPoints.push_back(Point3f(  markerSize/2, -markerSize/2, 0));
+
+    // set image points (detected marker corners)
+    vector<Point2f> imagePoints;
+    imagePoints.push_back(marker.p1());
+    imagePoints.push_back(marker.p2());
+    imagePoints.push_back(marker.p3());
+    imagePoints.push_back(marker.p4());
+
+    // set coordinate system points
+    vector<Point3f> coordinateSytemPoints;
+    coordinateSytemPoints.push_back(Point3f(markerSize/2, 0, 0)); // x-axis
+    coordinateSytemPoints.push_back(Point3f(0, markerSize/2, 0)); // y-axis
+    coordinateSytemPoints.push_back(Point3f(0, 0, markerSize/2)); // z-axis
+
+    // get calibration parameters
+    Mat intrinsic = Core::instance()->imageProcessor()->getIntrinsic();
+    Mat extrinsic = Core::instance()->imageProcessor()->getExtrinsic();
+
+    Mat_<float> rotationMatrix(3,3);
+
+    Mat rotationVector;
+    Mat translationVector;
+
+    Mat rotationOutput;
+    Mat translationOutput;
+
+    QMatrix4x4 transformationMatrix;
+    transformationMatrix.setToIdentity();
+
+    // Magic...? TODO: understand
+    solvePnP(objectPoints,imagePoints,intrinsic,extrinsic,rotationOutput,translationOutput);
+
+    // convert the rotation and tranlation vectors to double
+    rotationOutput.convertTo(rotationVector,CV_32F);
+    translationOutput.convertTo(translationVector,CV_32F);
+
+    // create a rotation matrix from the euclidean rotation vector
+    Rodrigues(rotationVector,rotationMatrix);
+
+    // copy to rotation matrix into transformationmatrix
+    for(int col = 0; col < 3; col++){
+        for (int row = 0; row < 3; row++){
+            transformationMatrix(row,col) = rotationMatrix(row,col);
+        }
+    }
+    // copy to translation vector into transformationmatrix
+    for(int row = 0; row < 3; row++){
+        transformationMatrix(row,3) = translationOutput.at<double>(row);
+    }
+
+    // invert because solvePnP calculates camera positon, nor object position
+    transformationMatrix = transformationMatrix.inverted();
+    //qDebug() << "---------------------------------\n transformationMatrix = " << transformationMatrix;
+
+    // calculate marker coodinate system points for dawing
+    vector<Point2f> imageCoordinateSystemPoints;
+    projectPoints(coordinateSytemPoints,rotationVector,translationVector,intrinsic,extrinsic,imageCoordinateSystemPoints);
+    m_coordinateSystemPoints.clear();
+    m_coordinateSystemPoints = imageCoordinateSystemPoints;
+
+    return transformationMatrix;
 }
 
 

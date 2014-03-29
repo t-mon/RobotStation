@@ -7,7 +7,6 @@
 
 #include <QMatrix>
 #include <QMatrix4x4>
-#include <QGenericMatrix>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -29,13 +28,20 @@ public:
 
 private:
     MarkerSearchEngine *m_markerSearchEngine;
-    float m_markerSize;
+    QList<Marker> m_markerList;
 
-    int m_imageWidth;
-    int m_imageHeight;
+    vector<Point2f> m_markerPoints;
+    QMatrix4x4 m_robotSystemTransformationMatrix;
 
-    vector<Point2f> estimateMarkerPosition(Marker marker);
-    void drawCoordinateSystem(Mat &img, Point2f markerCenter, vector<Point2f> coordinateSystemPoints);
+    // Points for drawing
+    vector<Point2f> m_robotSystemCoordinatePoints;
+    Point2f m_robotSystemCenter;
+
+
+    QMatrix4x4 estimateRobotPosition();
+    void drawRobotCoordinateSystem(Mat &img, Point2f center, vector<Point2f> coordinateSystemPoints);
+
+    Point2f calculateCoordinateSystemCenter(Point2f p1, Point2f p2 ,Point2f p3, Point2f p4);
 
 signals:
 

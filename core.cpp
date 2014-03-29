@@ -11,7 +11,6 @@ void Core::init()
 {
     m_window = new MainWindow(0);
     m_cameraEngine = new CameraEngine(m_window);
-
     m_imageProcessor = new ImageProcessor(m_window);
 
     connect(m_cameraEngine,SIGNAL(imageReady(Mat)),m_imageProcessor,SLOT(updateImage(Mat)));
