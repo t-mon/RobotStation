@@ -37,6 +37,7 @@ private:
     vector<Point2f> m_robotSystemCoordinatePoints;
     Point2f m_robotSystemCenter;
 
+    bool m_debug;
 
     QMatrix4x4 estimateRobotPosition();
     void drawRobotCoordinateSystem(Mat &img, Point2f center, vector<Point2f> coordinateSystemPoints);

@@ -5,12 +5,20 @@ PoseEstimationEngine::PoseEstimationEngine(QObject *parent) :
     QObject(parent)
 {
     m_markerSearchEngine = new MarkerSearchEngine(this);
+    m_debug = false;
 }
 
 void PoseEstimationEngine::updateImage(Mat &image)
 {
     m_markerList.clear();
     m_markerList = m_markerSearchEngine->searchMarker(image);
+
+    if(m_debug){
+        //===================================================================
+        Mat markerImage = image.clone();
+        m_markerSearchEngine->drawMarkers(markerImage,m_markerList);
+        imwrite("/home/timon/algorithmus_7.png",markerImage);
+    }
 
     if(m_markerList.count() != 0){
         qDebug() << "========================================";
@@ -38,6 +46,11 @@ void PoseEstimationEngine::updateImage(Mat &image)
 
             m_robotSystemCenter = calculateCoordinateSystemCenter(m_markerPoints.at(0), m_markerPoints.at(1), m_markerPoints.at(2), m_markerPoints.at(3));
             drawRobotCoordinateSystem(image,m_robotSystemCenter,m_robotSystemCoordinatePoints);
+
+            if(m_debug){
+                //===================================================================
+                imwrite("/home/timon/algorithmus_8.png",image);
+            }
         }
     }
 }

@@ -61,11 +61,6 @@ void MarkerSearchEngine::drawMarkers(Mat &image, QList<Marker> markerList)
         putText(image, text, drawPoint, fontFace, fontScale, Scalar(130, 255, 80), thickness, 8);
 
         drawMarkerCoordinateSystem(image,marker.center(),marker.coordinateSystemPoints());
-
-        if(m_debug){
-            imwrite("/home/timon/algorithmus_result.png",image);
-        }
-
     }
 }
 
@@ -89,7 +84,7 @@ void MarkerSearchEngine::findRectangles()
     findContours(contourImage, allContours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
     // filter small contours away
-    int minContourSizeAllowed = 15;
+    int minContourSizeAllowed = 50;
     vector<vector<Point> > contours;
     contours.clear();
     for(uint i = 0; i < allContours.size(); i++){
@@ -169,7 +164,7 @@ void MarkerSearchEngine::findRectangles()
         // Draw all contours
         Mat allContourImage = Mat::zeros( m_grayMat.size(), CV_8UC3 );
         for(uint i = 0; i< allContours.size(); i++){
-            drawContours( allContourImage, allContours, i, Scalar(0,0,255), 1, 8, hierarchy, 0, Point() );
+            drawContours( allContourImage, allContours, i, Scalar(255,255,255), 1, 8, hierarchy, 0, Point() );
         }
         imwrite("/home/timon/algorithmus_3.png",allContourImage);
 
@@ -177,7 +172,7 @@ void MarkerSearchEngine::findRectangles()
         // Draw contours
         Mat contourImage = Mat::zeros( m_grayMat.size(), CV_8UC3 );
         for(uint i = 0; i< contours.size(); i++){
-            drawContours( contourImage, contours, i, Scalar(0,0,255), 1, 8, hierarchy, 0, Point() );
+            drawContours( contourImage, contours, i, Scalar(255,255,255), 1, 8, hierarchy, 0, Point() );
         }
         imwrite("/home/timon/algorithmus_4.png",contourImage);
 
@@ -196,10 +191,10 @@ void MarkerSearchEngine::findRectangles()
 void MarkerSearchEngine::drawRectangel(Mat &image, vector<Point2f> rectangle)
 {
     for(uint i = 0; i< 4; i++){
-        line(image,rectangle.at(0),rectangle.at(1),Scalar(0,255,0),1,8);
-        line(image,rectangle.at(1),rectangle.at(2),Scalar(0,255,0),1,8);
-        line(image,rectangle.at(2),rectangle.at(3),Scalar(0,255,0),1,8);
-        line(image,rectangle.at(3),rectangle.at(0),Scalar(0,255,0),1,8);
+        line(image,rectangle.at(0),rectangle.at(1),Scalar(0,255,0),2,8);
+        line(image,rectangle.at(1),rectangle.at(2),Scalar(0,255,0),2,8);
+        line(image,rectangle.at(2),rectangle.at(3),Scalar(0,255,0),2,8);
+        line(image,rectangle.at(3),rectangle.at(0),Scalar(0,255,0),2,8);
     }
 }
 
