@@ -129,7 +129,7 @@ Mat ImageProcessor::getIntrinsic()
     if(m_calibrated){
         return m_intrinsic;
     }else{
-        return Mat::zeros(0,0,CV_64F);
+        return Mat::zeros(Size(3,3),CV_64F);
     }
 }
 
@@ -138,7 +138,7 @@ Mat ImageProcessor::getExtrinsic()
     if(m_calibrated){
         return m_extrinsic;
     }else{
-        return Mat::zeros(0,0,CV_64F);
+        return Mat::zeros(1,5,CV_64F);
     }
 }
 
@@ -178,11 +178,12 @@ void ImageProcessor::loadSettings()
     double cy = settings.value("cy",0).toDouble();
     settings.endGroup();
 
-    m_intrinsic = Mat::eye(Size(3,3),CV_64F);
+    m_intrinsic = Mat::zeros(Size(3,3),CV_64F);
     m_intrinsic.at<double>(0,0) = fx;
     m_intrinsic.at<double>(1,1) = fy;
     m_intrinsic.at<double>(0,2) = cx;
     m_intrinsic.at<double>(1,2) = cy;
+    m_intrinsic.at<double>(2,2) = 1;
 
     qDebug() << "intrinsic parameter:";
     qDebug() << "   fx = " << fx;
@@ -266,6 +267,8 @@ void ImageProcessor::processImage()
     image.convertTo(image,-1,m_alpha,m_beta);
     emit imageReady(image);
 
+
+    // show image to gui...depending on processtype...
     // switching between process types
     switch (m_processType) {
 
@@ -282,15 +285,16 @@ void ImageProcessor::processImage()
     default:
         break;
     }
-    m_processedImage = image;
     QImage imageToShow = convertMatToQimage(image);
     Core::instance()->window()->updateImage(imageToShow.mirrored(false,false));
 }
 
 void ImageProcessor::updateImage()
 {
-    m_image = Core::instance()->cameraEngine()->image().clone();
-    processImage();
+    m_image = Core::instance()->cameraEngine()->image();
+    if(!m_image.empty()){
+        processImage();
+    }
 }
 
 void ImageProcessor::updateProcessType(const int &processType)

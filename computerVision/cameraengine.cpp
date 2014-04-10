@@ -4,15 +4,18 @@
 CameraEngine::CameraEngine(QObject *parent) :
     QThread(parent)
 {   
-    m_camera = 0;
+    m_camera = 1;
     m_stop = false;
     connect(this,SIGNAL(imageReady(Mat)),this,SLOT(updateImage(Mat)));
-    connect(this,SIGNAL(fpsReady(int)),this,SLOT(updateFps(double)));
+    //connect(this,SIGNAL(fpsReady(int)),this,SLOT(updateFps(double)));
 }
 
 Mat CameraEngine::image()
 {
-    return m_image;
+    m_imageMutex.lock();
+    Mat image = m_image;
+    m_imageMutex.unlock();
+    return image;
 }
 
 void CameraEngine::run()
@@ -24,6 +27,7 @@ void CameraEngine::run()
         qDebug() << "ERROR: could not open camera capture";
     }
 
+    Mat image;
     while(1){
         // check if we should stop the thread...
         m_stopMutex.lock();
@@ -34,20 +38,18 @@ void CameraEngine::run()
         }
         m_stopMutex.unlock();
 
-        int captureTime = m_time.elapsed();
-        updateFps(captureTime);
+        m_captureTime = m_time.elapsed();
         m_time.start();
 
         // Capture frame (if available)
         if (!capture.grab())
             continue;
 
-        Mat image;
         if(!capture.retrieve(image)){
             qDebug() << "ERROR: could not read image image from camera.";
         }
         emit updateImage(image);
-        emit fpsReady(captureTime);
+        //emit fpsReady(captureTime);
     }
     qDebug() << "camera thread stopped";
     capture.release();
@@ -58,15 +60,17 @@ void CameraEngine::run()
 
 void CameraEngine::updateFps(double fps)
 {
-    float dt = fps - m_captureTime;
-    m_captureTime = fps;
-    float actualFps = (float)1000/dt;
-    Core::instance()->window()->setStatusBarText("fps: " + QString::number(actualFps));
+    //float dt = fps - m_captureTime;
+    //m_captureTime = fps;
+    //float actualFps = (float)1000/dt;
+    //Core::instance()->window()->setStatusBarText("fps: " + QString::number(actualFps));
 }
 
 void CameraEngine::updateImage(const Mat &image)
 {
-    m_image = image.clone();
+    m_imageMutex.lock();
+    m_image = image;
+    m_imageMutex.unlock();
 }
 
 void CameraEngine::startEngine()

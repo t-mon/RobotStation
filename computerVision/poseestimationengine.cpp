@@ -49,7 +49,7 @@ void PoseEstimationEngine::updateImage(Mat &image)
 
 
             m_robotSystemTransformationMatrix = estimateRobotPosition();
-            //qDebug() << m_robotSystemTransformationMatrix << rotateSystemTransformationMatrix;
+            qDebug() << m_robotSystemTransformationMatrix;
 
             m_robotSystemCenter = calculateCoordinateSystemCenter(m_markerPoints.at(0), m_markerPoints.at(1), m_markerPoints.at(2), m_markerPoints.at(3));
             drawRobotCoordinateSystem(image,m_robotSystemCenter,m_robotSystemCoordinatePoints);

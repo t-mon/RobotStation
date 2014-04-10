@@ -24,6 +24,8 @@ private:
     QMutex m_stopMutex;
     bool m_stop;
 
+    QMutex m_imageMutex;
+
     // fps calculation
     QTime m_time;
     int m_fpsSum;
