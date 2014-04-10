@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 #include qt moules
-QT       += core gui widgets
+QT       += core gui widgets network
 
 TARGET = RobotStation
 TEMPLATE = app
@@ -21,33 +21,43 @@ LIBS += -lopencv_core\
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
+        gui/mainwindow.cpp \
         core.cpp \
-        cameraengine.cpp \
-        Tools/snapshotdialog.cpp \
-        Tools/calibrationdialog.cpp \
-        Tools/markergeneratordialog.cpp \
-        markersearchengine.cpp \
-        imageprocessor.cpp \
-        Tools/qrcodesearchdialog.cpp \
-        marker.cpp \
-        Tools/markersearchdialog.cpp \
-        poseestimationengine.cpp
+        computerVision/cameraengine.cpp \
+        tools/snapshotdialog.cpp \
+        tools/calibrationdialog.cpp \
+        tools/markergeneratordialog.cpp \
+        computerVision/markersearchengine.cpp \
+        computerVision/imageprocessor.cpp \
+        tools/qrcodesearchdialog.cpp \
+        computerVision/marker.cpp \
+        tools/markersearchdialog.cpp \
+        computerVision/poseestimationengine.cpp \
+        robotCommunication/robottcpclient.cpp \
+        robotCommunication/robotcommander.cpp \
+    gui/settingsdialog.cpp \
+    gui/robotcontrolwidget.cpp \
+    gui/cameracontrolwidget.cpp
 
-HEADERS  += mainwindow.h \
+HEADERS  += gui/mainwindow.h \
         core.h \
-        cameraengine.h \
-        Tools/snapshotdialog.h \
-        Tools/calibrationdialog.h \
-        Tools/markergeneratordialog.h \
-        markersearchengine.h \
-        imageprocessor.h \
-        Tools/qrcodesearchdialog.h \
-        marker.h \
-        Tools/markersearchdialog.h \
-        poseestimationengine.h
+        computerVision/cameraengine.h \
+        tools/snapshotdialog.h \
+        tools/calibrationdialog.h \
+        tools/markergeneratordialog.h \
+        computerVision/markersearchengine.h \
+        computerVision/imageprocessor.h \
+        tools/qrcodesearchdialog.h \
+        computerVision/marker.h \
+        tools/markersearchdialog.h \
+        computerVision/poseestimationengine.h \
+        robotCommunication/robottcpclient.h \
+        robotCommunication/robotcommander.h \
+    gui/settingsdialog.h \
+    gui/robotcontrolwidget.h \
+    gui/cameracontrolwidget.h
 
 OTHER_FILES +=
 
 RESOURCES += \
-    icons.qrc
+    icons/icons.qrc

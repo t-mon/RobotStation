@@ -7,10 +7,10 @@ ImageProcessor::ImageProcessor(QObject *parent) :
     loadSettings();
 
     m_timer = new QTimer(this);
-    m_timer->setInterval(30);
+    m_timer->setInterval(100);
     m_poseEngine = new PoseEstimationEngine(this);
 
-    connect(m_timer,SIGNAL(timeout()),this,SLOT(processImage()));
+    connect(m_timer,SIGNAL(timeout()),this,SLOT(updateImage()));
 }
 
 Mat ImageProcessor::convertQImageToMat(QImage image)
@@ -30,8 +30,7 @@ Mat ImageProcessor::convertQImageToMat(QImage image)
         return Mat(image.height(), image.width(), CV_8UC1, const_cast<uchar*>(image.bits()), image.bytesPerLine());
     }
     default:
-        Core::instance()->window()->writeToTerminal("ERROR: can not convert this image format");
-        Core::instance()->window()->writeToTerminal("______________________________________________");
+        Core::instance()->window()->writeErrorToTerminal("ERROR: can not convert this image format");
         break;
     }
     return Mat();
@@ -56,8 +55,7 @@ QImage ImageProcessor::convertMatToQimage(Mat imageMat)
         return image;
     }
     default:
-        Core::instance()->window()->writeToTerminal("ERROR: can not convert this image format");
-        Core::instance()->window()->writeToTerminal("______________________________________________");
+        Core::instance()->window()->writeErrorToTerminal("ERROR: can not convert this image format");
         break;
     }
     return QImage();
@@ -85,7 +83,7 @@ void ImageProcessor::saveCalibrationParameter(Mat intrinsic, Mat extrinsic)
     settings.setValue("cy",cy);
     settings.endGroup();
 
-    qDebug() << "saving calibration parameter...";
+    qDebug() << "saving calibration parameter to" << settings.fileName();
     qDebug() << "----------------------------------------";
 
     qDebug() << "saving intrinsic parameter:";
@@ -123,9 +121,7 @@ void ImageProcessor::saveCalibrationParameter(Mat intrinsic, Mat extrinsic)
 
     m_calibrated = true;
 
-    Core::instance()->window()->writeToTerminal("----------------------------------------");
-    Core::instance()->window()->writeToTerminal("calibration parameter saved....");
-    Core::instance()->window()->writeToTerminal("----------------------------------------");
+    Core::instance()->window()->writeToTerminal("calibration parameter saved to " + settings.fileName());
 }
 
 Mat ImageProcessor::getIntrinsic()
@@ -146,16 +142,19 @@ Mat ImageProcessor::getExtrinsic()
     }
 }
 
+QImage ImageProcessor::image()
+{
+    return convertMatToQimage(m_image);
+}
+
 void ImageProcessor::loadSettings()
 {
-    qDebug() << "----------------------------------------";
-    qDebug() << "loading settings";
-    qDebug() << "----------------------------------------";
 
     // general settings
     QSettings settings("RobotStation");
-    m_threshold = settings.value("threshold",100).toInt();
-    qDebug() << "threshold = " << m_threshold;
+
+    qDebug() << "----------------------------------------";
+    qDebug() << "loading settings" << settings.fileName();
     qDebug() << "----------------------------------------";
 
     m_processType = settings.value("processType",0).toInt();
@@ -242,9 +241,7 @@ void ImageProcessor::loadSettings()
         m_calibrated = false;
     }
 
-    Core::instance()->window()->writeToTerminal("----------------------------------------");
-    Core::instance()->window()->writeToTerminal("settings loaded...");
-    Core::instance()->window()->writeToTerminal("----------------------------------------");
+    Core::instance()->window()->writeToTerminal("settings loaded..." + settings.fileName());
 }
 
 void ImageProcessor::processImage()
@@ -278,56 +275,25 @@ void ImageProcessor::processImage()
         break;
     }
     case 1:{
-        break;
-    }
-    case 2:{
-        // gray
-        cvtColor(image, image, CV_BGR2GRAY);
-        break;
-    }
-    case 3:{
-        // gray hist equalized
-        cvtColor(image, image, CV_BGR2GRAY);
-        equalizeHist(image,image);
-        break;
-    }
-    case 4:{
-
-        cvtColor(image, image, CV_BGR2GRAY);
-        threshold(image,image,m_threshold,255,CV_THRESH_BINARY);
-        break;
-    }
-    case 5:{
-        cvtColor(image, image, CV_BGR2GRAY);
-        adaptiveThreshold(image, image, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 9, 9);
-        break;
-    }
-    case 6:{
-        cvtColor(image, image, CV_BGR2GRAY);
-        //adaptiveThreshold(image, image, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 7, 7);
-        Canny(image,image,m_threshold,m_threshold+50);
-        break;
-    }
-    case 7:{
+        // result image
         m_poseEngine->updateImage(image);
         break;
     }
     default:
         break;
     }
-
+    m_processedImage = image;
     QImage imageToShow = convertMatToQimage(image);
     Core::instance()->window()->updateImage(imageToShow.mirrored(false,false));
-
-//    Core::instance()->window()->updateImage(imageToShow.mirrored(true,false));
 }
 
-void ImageProcessor::updateImage(const Mat &image)
+void ImageProcessor::updateImage()
 {
-    m_image = image;
+    m_image = Core::instance()->cameraEngine()->image().clone();
+    processImage();
 }
 
-void ImageProcessor::processTypeChanged(const int &processType)
+void ImageProcessor::updateProcessType(const int &processType)
 {
 
     m_processType = processType;
@@ -340,24 +306,6 @@ void ImageProcessor::processTypeChanged(const int &processType)
         qDebug() << "process type changed to original image";
         break;
     case 1:
-        qDebug() << "process type changed to undistort image";
-        break;
-    case 2:
-        qDebug() << "process type changed to gray image";
-        break;
-    case 3:
-        qDebug() << "process type changed to equalized gray image";
-        break;
-    case 4:
-        qDebug() << "process type changed to threshold image";
-        break;
-    case 5:
-        qDebug() << "process type changed to adaptice threshold image";
-        break;
-    case 6:
-        qDebug() << "process type changed to canny image";
-        break;
-    case 7:
         qDebug() << "process type changed to result image";
         break;
     default:
@@ -365,14 +313,7 @@ void ImageProcessor::processTypeChanged(const int &processType)
     }
 }
 
-void ImageProcessor::thresholdValueChanged(const int &threshold)
-{
-    m_threshold = threshold;
-    QSettings settings("RobotStation");
-    settings.setValue("threshold",threshold);
-}
-
-void ImageProcessor::brightnessValueChanged(const double &brightness)
+void ImageProcessor::updateBrightness(const double &brightness)
 {
     m_beta = brightness;
     qDebug() << "brightness =" << brightness;
@@ -380,7 +321,7 @@ void ImageProcessor::brightnessValueChanged(const double &brightness)
     settings.setValue("brightness",brightness);
 }
 
-void ImageProcessor::contrastValueChanged(const double &contrast)
+void ImageProcessor::updateContrast(const double &contrast)
 {
     m_alpha = contrast;
     qDebug() << "contrast =" << contrast;
@@ -388,7 +329,7 @@ void ImageProcessor::contrastValueChanged(const double &contrast)
     settings.setValue("contrast",contrast);
 }
 
-void ImageProcessor::setFps(const int &fps)
+void ImageProcessor::updateFps(const int &fps)
 {
     int dt = (int)( ((float)1 / (fps)) *1000 );
     qDebug() << "fps =" << fps << " -> dt =" << dt << "ms";
@@ -399,12 +340,11 @@ void ImageProcessor::startProcessor()
 {
     m_timer->start();
     Core::instance()->window()->writeToTerminal("image processor started.");
-    Core::instance()->window()->writeToTerminal("----------------------------------------");
 }
 
 void ImageProcessor::stopProcessor()
 {
     m_timer->stop();
     Core::instance()->window()->writeToTerminal("image processor stopped.");
-    Core::instance()->window()->writeToTerminal("----------------------------------------");
 }
+

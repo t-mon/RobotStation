@@ -30,7 +30,7 @@ CalibrationDialog::CalibrationDialog(QWidget *parent) :
     m_fpsSlider->setTickInterval(1);
     m_fpsSlider->setValue(1);
     m_fpsSlider->setTickPosition(QSlider::TicksBothSides);
-    Core::instance()->imageProcessor()->setFps(1);
+    Core::instance()->imageProcessor()->updateFps(1);
 
     connect(m_fpsSlider,SIGNAL(valueChanged(int)),this,SLOT(fpsChaged(int)));
 
@@ -92,7 +92,7 @@ void CalibrationDialog::init()
 void CalibrationDialog::fpsChaged(const int &fps)
 {
     m_frameStepDialog->setText("fps = " + QString::number(fps));
-    Core::instance()->imageProcessor()->setFps(fps);
+    Core::instance()->imageProcessor()->updateFps(fps);
 }
 
 void CalibrationDialog::saveClicked()
@@ -121,7 +121,7 @@ void CalibrationDialog::retryClicked()
 
 void CalibrationDialog::cancelClicked()
 {
-    Core::instance()->imageProcessor()->setFps(20);
+    Core::instance()->imageProcessor()->updateFps(20);
     reject();
 }
 

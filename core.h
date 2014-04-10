@@ -3,9 +3,10 @@
 
 #include <QObject>
 
-#include "cameraengine.h"
-#include "mainwindow.h"
-#include "imageprocessor.h"
+#include "gui/mainwindow.h"
+#include "computerVision/cameraengine.h"
+#include "computerVision/imageprocessor.h"
+#include "robotCommunication/robotcommander.h"
 
 class Core : public QObject
 {
@@ -19,8 +20,10 @@ public:
         return s_instance;
     }
 
+    CameraEngine *cameraEngine();
     ImageProcessor *imageProcessor();
     MainWindow *window();
+    RobotCommander *robot();
 
 private:
     explicit Core(QObject *parent = 0);
@@ -29,6 +32,7 @@ private:
     CameraEngine *m_cameraEngine;
     ImageProcessor *m_imageProcessor;
     MainWindow *m_window;
+    RobotCommander *m_robot;
 
 
 private slots:

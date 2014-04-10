@@ -8,7 +8,7 @@ MarkerGeneratorDialog::MarkerGeneratorDialog(QWidget *parent) :
 {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     setWindowTitle("Marker generator...");
-    setWindowIcon(QIcon(":/icons/markergenerator-icon.png"));
+    setWindowIcon(QIcon(":/markergenerator-icon.png"));
 
     // Image
     m_imageLabel = new QLabel(this);
@@ -126,10 +126,8 @@ void MarkerGeneratorDialog::saveImage()
     
     if(image.save(fileName)){
         Core::instance()->window()->writeToTerminal("Marker saved to " + fileName);
-        Core::instance()->window()->writeToTerminal("----------------------------------------");
     }else{
-        Core::instance()->window()->writeToTerminal("ERROR: could not save marker to " + fileName);
-        Core::instance()->window()->writeToTerminal("----------------------------------------");
+        Core::instance()->window()->writeErrorToTerminal("ERROR: could not save marker to " + fileName);
     }
 }
 

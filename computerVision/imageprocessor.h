@@ -8,6 +8,7 @@
 #include <QList>
 #include <QSettings>
 #include <QDir>
+#include <QMutex>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -29,20 +30,21 @@ public:
     void saveCalibrationParameter(Mat intrinsic, Mat extrinsic);
     Mat getIntrinsic();
     Mat getExtrinsic();
+    QImage image();
 
 private:
     QTimer *m_timer;
     int m_fps;
 
+    QMutex m_imageMutex;
     Mat m_image;
+    Mat m_processedImage;
 
     Mat m_intrinsic;
     Mat m_extrinsic;
     bool m_calibrated;
 
     int m_processType;
-    int m_threshold;
-
     double m_alpha;
     double m_beta;
 
@@ -52,19 +54,18 @@ private:
 
 private slots:
     void processImage();
+    void updateImage();
 
 signals:
     void imageReady(const Mat &image);
     void originalImageReady(const Mat &image);
 
 public slots:
-    void updateImage(const Mat &image);
-    void processTypeChanged(const int& processType);
-    void thresholdValueChanged(const int& threshold);
-    void brightnessValueChanged(const double &brightness);
-    void contrastValueChanged(const double &contrast);
+    void updateProcessType(const int& processType);
+    void updateBrightness(const double &brightness);
+    void updateContrast(const double &contrast);
 
-    void setFps(const int &fps);
+    void updateFps(const int &fps);
     void startProcessor();
     void stopProcessor();
 

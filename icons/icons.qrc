@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>markergenerator-icon.png</file>
+        <file>robotstation-icon.svg</file>
+        <file>robotremote-icon.png</file>
+        <file>settings-icon.png</file>
+        <file>qrcode-icon.png</file>
+    </qresource>
+</RCC>

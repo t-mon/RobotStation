@@ -21,14 +21,14 @@ void PoseEstimationEngine::updateImage(Mat &image)
     }
 
     if(m_markerList.count() != 0){
-        qDebug() << "========================================";
-        qDebug() << "found " << m_markerList.count() << "marker";
-        qDebug() << "----------------------------------------";
-        foreach (const Marker &marker, m_markerList){
-            qDebug() << "ID             = " << marker.id();
-            qDebug() << "Center Point   = (" << marker.center().x << "," << marker.center().y << ")";
-            qDebug() << "----------------------------------------";
-        }
+//        qDebug() << "========================================";
+//        qDebug() << "found " << m_markerList.count() << "marker";
+//        qDebug() << "----------------------------------------";
+//        foreach (const Marker &marker, m_markerList){
+//            qDebug() << "ID             = " << marker.id();
+//            qDebug() << "Center Point   = (" << marker.center().x << "," << marker.center().y << ")";
+//            qDebug() << "----------------------------------------";
+//        }
 
         // if we have found 4 Marker in the image...
         // make the same with a rectangle of the 4 marker center and estiate position
@@ -42,10 +42,18 @@ void PoseEstimationEngine::updateImage(Mat &image)
                 }
             }
 
+            QMatrix4x4 rotateSystemTransformationMatrix(1,0,0,0,
+                                                        0,-1,0,0,
+                                                        0,0,-1,0,
+                                                        0,0,0,1);
+
+
             m_robotSystemTransformationMatrix = estimateRobotPosition();
+            //qDebug() << m_robotSystemTransformationMatrix << rotateSystemTransformationMatrix;
 
             m_robotSystemCenter = calculateCoordinateSystemCenter(m_markerPoints.at(0), m_markerPoints.at(1), m_markerPoints.at(2), m_markerPoints.at(3));
             drawRobotCoordinateSystem(image,m_robotSystemCenter,m_robotSystemCoordinatePoints);
+
 
             if(m_debug){
                 //===================================================================
@@ -151,8 +159,8 @@ QMatrix4x4 PoseEstimationEngine::estimateRobotPosition()
     // set coordinate system points
     vector<Point3f> coordinateSytemPoints;
     coordinateSytemPoints.push_back(Point3f(80, 0, 0)); // x-axis
-    coordinateSytemPoints.push_back(Point3f(0, 80, 0)); // y-axis
-    coordinateSytemPoints.push_back(Point3f(0, 0, 80)); // z-axis
+    coordinateSytemPoints.push_back(Point3f(0, -80, 0)); // y-axis
+    coordinateSytemPoints.push_back(Point3f(0, 0, -80)); // z-axis
 
     vector<Point2f> imageCoordinateSystemPoints;
     projectPoints(coordinateSytemPoints,rotationVector,translationVector,intrinsic,extrinsic,imageCoordinateSystemPoints);
@@ -163,9 +171,20 @@ QMatrix4x4 PoseEstimationEngine::estimateRobotPosition()
 
 void PoseEstimationEngine::drawRobotCoordinateSystem(Mat &img, Point2f center, vector<Point2f> coordinateSystemPoints)
 {
+
+    int fontFace = FONT_HERSHEY_PLAIN;
+    double fontScale = 1.5;
+    int thickness = 2;
+
     line(img,center, coordinateSystemPoints.at(0),Scalar(0,0,255),2,8);   // x-axis
+    putText(img, "x", coordinateSystemPoints.at(0), fontFace, fontScale, Scalar(0,0,255), thickness, 8);
+
     line(img,center, coordinateSystemPoints.at(1),Scalar(0,255,0),2,8);   // y-axis
+    putText(img, "y", coordinateSystemPoints.at(1), fontFace, fontScale, Scalar(0,255,0), thickness, 8);
+
     line(img,center, coordinateSystemPoints.at(2),Scalar(255,0,0),2,8);   // z-axis
+    putText(img, "z", coordinateSystemPoints.at(2), fontFace, fontScale, Scalar(255,0,0), thickness, 8);
+
 }
 
 Point2f PoseEstimationEngine::calculateCoordinateSystemCenter(Point2f p1, Point2f p2, Point2f p3, Point2f p4)

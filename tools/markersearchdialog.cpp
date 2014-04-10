@@ -8,6 +8,7 @@ MarkerSearchDialog::MarkerSearchDialog(QWidget *parent) :
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     setWindowTitle("Find markers...");
+    setModal(true);
 
     m_imageLabel = new QLabel(this);
     m_imageLabel->setAutoFillBackground(true);

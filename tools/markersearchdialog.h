@@ -8,7 +8,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
-#include <markersearchengine.h>
+#include <computerVision/markersearchengine.h>
 
 class MarkerSearchDialog : public QDialog
 {

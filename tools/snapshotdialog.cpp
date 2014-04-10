@@ -37,11 +37,9 @@ void SnapshotDialog::saveImage()
     qDebug() << "save image to" << fileName;
     if(image.save(fileName)){
         Core::instance()->window()->writeToTerminal("Snapshot saved to " + fileName);
-        Core::instance()->window()->writeToTerminal("----------------------------------------");
         reject();
     }else{
-        Core::instance()->window()->writeToTerminal("ERROR: could not save snapshot to " + fileName);
-        Core::instance()->window()->writeToTerminal("----------------------------------------");
+        Core::instance()->window()->writeErrorToTerminal("ERROR: could not save snapshot to " + fileName);
         reject();
     }
 }
