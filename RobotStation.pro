@@ -35,9 +35,10 @@ SOURCES += main.cpp\
         computerVision/poseestimationengine.cpp \
         robotCommunication/robottcpclient.cpp \
         robotCommunication/robotcommander.cpp \
-    gui/settingsdialog.cpp \
-    gui/robotcontrolwidget.cpp \
-    gui/cameracontrolwidget.cpp
+        gui/settingsdialog.cpp \
+        gui/robotcontrolwidget.cpp \
+        gui/cameracontrolwidget.cpp \
+    robotCommunication/robottcpserver.cpp
 
 HEADERS  += gui/mainwindow.h \
         core.h \
@@ -53,9 +54,10 @@ HEADERS  += gui/mainwindow.h \
         computerVision/poseestimationengine.h \
         robotCommunication/robottcpclient.h \
         robotCommunication/robotcommander.h \
-    gui/settingsdialog.h \
-    gui/robotcontrolwidget.h \
-    gui/cameracontrolwidget.h
+        gui/settingsdialog.h \
+        gui/robotcontrolwidget.h \
+        gui/cameracontrolwidget.h \
+    robotCommunication/robottcpserver.h
 
 OTHER_FILES +=
 

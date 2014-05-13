@@ -19,6 +19,7 @@ RobotTcpClient::RobotTcpClient(QObject *parent) :
     qDebug() << "----------------------------";
 
     connect(m_tcpSocket,SIGNAL(connected()),this,SLOT(readData()));
+    connect(m_tcpSocket,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(socketError(QAbstractSocket::SocketError)));
 }
 
 void RobotTcpClient::connected()

@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QJsonDocument>
 
-#include "robotCommunication/robottcpclient.h"
+#include "robotCommunication/robottcpserver.h"
 
 class RobotCommander : public QObject
 {
@@ -13,7 +13,7 @@ public:
     explicit RobotCommander(QObject *parent = 0);
 
 private:
-    RobotTcpClient *m_tcpClient;
+    RobotTcpServer *m_server;
     bool m_robotMoving;
 
 signals:

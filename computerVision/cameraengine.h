@@ -18,9 +18,11 @@ class CameraEngine : public QThread
 public:
     explicit CameraEngine(QObject *parent = 0);
     Mat image();
+    Size frameSize();
 private:
     int m_camera;
     Mat m_image;
+    Size m_frameSize;
     QMutex m_stopMutex;
     bool m_stop;
 
@@ -28,8 +30,8 @@ private:
 
     // fps calculation
     QTime m_time;
-    int m_fpsSum;
-    int m_captureTime;
+    int m_startTime;
+    int m_endTime;
     int m_sampleNumber;
 
 protected:

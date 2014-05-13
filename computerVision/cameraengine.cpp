@@ -7,7 +7,6 @@ CameraEngine::CameraEngine(QObject *parent) :
     m_camera = 1;
     m_stop = false;
     connect(this,SIGNAL(imageReady(Mat)),this,SLOT(updateImage(Mat)));
-    //connect(this,SIGNAL(fpsReady(int)),this,SLOT(updateFps(double)));
 }
 
 Mat CameraEngine::image()
@@ -18,6 +17,11 @@ Mat CameraEngine::image()
     return image;
 }
 
+Size CameraEngine::frameSize()
+{
+    return m_frameSize;
+}
+
 void CameraEngine::run()
 {
     qDebug() << "camera thread started";
@@ -26,6 +30,8 @@ void CameraEngine::run()
     if(!capture.isOpened()){
         qDebug() << "ERROR: could not open camera capture";
     }
+    qDebug() << "   Frame Size: " << capture.get(CV_CAP_PROP_FRAME_WIDTH) << capture.get(CV_CAP_PROP_FRAME_HEIGHT);
+    m_frameSize = Size(capture.get(CV_CAP_PROP_FRAME_WIDTH), capture.get(CV_CAP_PROP_FRAME_HEIGHT));
 
     Mat image;
     while(1){
@@ -38,12 +44,15 @@ void CameraEngine::run()
         }
         m_stopMutex.unlock();
 
-        m_captureTime = m_time.elapsed();
+        m_startTime = m_time.elapsed();
         m_time.start();
+
 
         // Capture frame (if available)
         if (!capture.grab())
             continue;
+
+        //qDebug() << "fps:" << fps;
 
         if(!capture.retrieve(image)){
             qDebug() << "ERROR: could not read image image from camera.";
