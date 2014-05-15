@@ -1,3 +1,21 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *  Copyright 2014 Simon Stuerz                                            *
+ *  This file is part of RobotStation.                                     *
+ *                                                                         *
+ *  RobotStation is free software: you can redistribute it and/or modify   *
+ *  it under the terms of the GNU General Public License as published by   *
+ *  the Free Software Foundation, version 2 of the License.                *
+ *                                                                         *
+ *  RobotStation is distributed in the hope that it will be useful         *
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the           *
+ *  GNU General Public License for more details.                           *
+ *                                                                         *
+ *  You should have received a copy of the GNU General Public License      *
+ *  along with RobotStation. If not, see <http://www.gnu.org/licenses/>.   *
+ *                                                                         *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #include "poseestimationengine.h"
 #include "core.h"
 
@@ -43,17 +61,19 @@ void PoseEstimationEngine::updateImage(Mat &image)
                 }
             }
 
-            QMatrix4x4 rotateSystemTransformationMatrix(1,0,0,0,
-                                                        0,-1,0,0,
-                                                        0,0,-1,0,
-                                                        0,0,0,1);
-
-
             m_robotSystemTransformationMatrix = estimateRobotPosition();
-            qDebug() << m_robotSystemTransformationMatrix;
+            // JUHU we have found the robot in pose -> robotcoordinatesystem
+
+            // calculate offsets
+            m_robotSystemTransformationMatrix *= calculateTransformationFromOffsets();
+
+            qDebug() << calculateTransformationFromOffsets() << m_robotSystemTransformationMatrix;
             emit coordinateSystemFound(m_robotSystemTransformationMatrix);
 
+
+            // drawing
             m_robotSystemCenter = calculateCoordinateSystemCenter(m_markerPoints.at(0), m_markerPoints.at(1), m_markerPoints.at(2), m_markerPoints.at(3));
+            drawOpticalCenter(image);
             drawRobotCoordinateSystem(image,m_robotSystemCenter,m_robotSystemCoordinatePoints);
 
 
@@ -63,6 +83,38 @@ void PoseEstimationEngine::updateImage(Mat &image)
             }
         }
     }
+}
+
+QMatrix4x4 PoseEstimationEngine::calculateTransformationFromOffsets()
+{
+    // deg to rad
+    float g = (float)m_wx * M_PI / 180;
+    float b = (float)m_wy * M_PI / 180;
+    float a = (float)m_wz * M_PI / 180;
+
+    /*   t11 t21 t31 dx
+     *   t12 t22 t32 dy
+     *   t13 t23 t33 dz
+     *    0   0   0   1
+     */
+
+    float t11 = cos(a)*cos(b);
+    float t12 = sin(a)*cos(b);
+    float t13 = -sin(b);
+
+    float t21 = (cos(a)*sin(b)*sin(g)) - (sin(a)*cos(g));
+    float t22 = (sin(a)*sin(b)*sin(g)) - (cos(a)*cos(g));
+    float t23 = (cos(b)*sin(g));
+
+    float t31 = (cos(a)*sin(b)*cos(g)) - (sin(a)*sin(g));
+    float t32 = (sin(a)*sin(b)*cos(g)) - (cos(a)*sin(g));
+    float t33 = (cos(b)*cos(g));
+
+    QMatrix4x4 trans(t11, t21, t31, m_dx,
+                     t12, t22, t32, m_dy,
+                     t13, t23, t33, m_dz,
+                     0,   0,   0,   1);
+    return trans;
 }
 
 QMatrix4x4 PoseEstimationEngine::estimateRobotPosition()
@@ -132,7 +184,6 @@ QMatrix4x4 PoseEstimationEngine::estimateRobotPosition()
     Mat rotationOutput;
     Mat translationOutput;
 
-    // Magic...? TODO: understand
     solvePnP(objectPoints,imagePoints,intrinsic,extrinsic,rotationOutput,translationOutput);
 
     // convert the rotation and tranlation vectors to double
@@ -187,6 +238,11 @@ void PoseEstimationEngine::drawRobotCoordinateSystem(Mat &img, Point2f center, v
     line(img,center, coordinateSystemPoints.at(2),Scalar(255,0,0),2,8);   // z-axis
     putText(img, "z", coordinateSystemPoints.at(2), fontFace, fontScale, Scalar(255,0,0), thickness, 8);
 
+}
+
+void PoseEstimationEngine::drawOpticalCenter(Mat &img)
+{
+    circle(img,Core::instance()->imageProcessor()->getOpticalCenter(),3,Scalar(0,255,0),2,8);
 }
 
 Point2f PoseEstimationEngine::calculateCoordinateSystemCenter(Point2f p1, Point2f p2, Point2f p3, Point2f p4)

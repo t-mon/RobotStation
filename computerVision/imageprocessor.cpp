@@ -1,3 +1,21 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *  Copyright 2014 Simon Stuerz                                            *
+ *  This file is part of RobotStation.                                     *
+ *                                                                         *
+ *  RobotStation is free software: you can redistribute it and/or modify   *
+ *  it under the terms of the GNU General Public License as published by   *
+ *  the Free Software Foundation, version 2 of the License.                *
+ *                                                                         *
+ *  RobotStation is distributed in the hope that it will be useful         *
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the           *
+ *  GNU General Public License for more details.                           *
+ *                                                                         *
+ *  You should have received a copy of the GNU General Public License      *
+ *  along with RobotStation. If not, see <http://www.gnu.org/licenses/>.   *
+ *                                                                         *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #include "imageprocessor.h"
 #include "core.h"
 
@@ -139,6 +157,11 @@ Mat ImageProcessor::getExtrinsic()
     }else{
         return Mat::zeros(1,5,CV_64F);
     }
+}
+
+Point2f ImageProcessor::getOpticalCenter()
+{
+    return Point2f(m_intrinsic.at<double>(0,2),m_intrinsic.at<double>(1,2));
 }
 
 QImage ImageProcessor::image()

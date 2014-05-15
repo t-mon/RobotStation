@@ -1,3 +1,21 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *  Copyright 2014 Simon Stuerz                                            *
+ *  This file is part of RobotStation.                                     *
+ *                                                                         *
+ *  RobotStation is free software: you can redistribute it and/or modify   *
+ *  it under the terms of the GNU General Public License as published by   *
+ *  the Free Software Foundation, version 2 of the License.                *
+ *                                                                         *
+ *  RobotStation is distributed in the hope that it will be useful         *
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the           *
+ *  GNU General Public License for more details.                           *
+ *                                                                         *
+ *  You should have received a copy of the GNU General Public License      *
+ *  along with RobotStation. If not, see <http://www.gnu.org/licenses/>.   *
+ *                                                                         *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #ifndef POSEESTIMATIONENGINE_H
 #define POSEESTIMATIONENGINE_H
 
@@ -27,6 +45,16 @@ public:
 
 
 private:
+    // Offset Parameter
+    int m_dx;
+    int m_dy;
+    int m_dz;
+    int m_wx;
+    int m_wy;
+    int m_wz;
+
+    bool m_debug;
+
     MarkerSearchEngine *m_markerSearchEngine;
     QList<Marker> m_markerList;
 
@@ -37,23 +65,19 @@ private:
     vector<Point2f> m_robotSystemCoordinatePoints;
     Point2f m_robotSystemCenter;
 
-    bool m_debug;
+    QMatrix4x4 calculateTransformationFromOffsets();
 
     QMatrix4x4 estimateRobotPosition();
     void drawRobotCoordinateSystem(Mat &img, Point2f center, vector<Point2f> coordinateSystemPoints);
+    void drawOpticalCenter(Mat &img);
 
     Point2f calculateCoordinateSystemCenter(Point2f p1, Point2f p2 ,Point2f p3, Point2f p4);
 
-    // Offset Parameter
-    int m_dx;
-    int m_dy;
-    int m_dz;
-    int m_wx;
-    int m_wy;
-    int m_wz;
+
 
 signals:
     void coordinateSystemFound(const QMatrix4x4 &transformationMatrix);
+    void positionDataReady(const float &dx, const float &dy, const float &dz, const float &wx, const float &wy, const float &wz);
 
 private slots:
 
