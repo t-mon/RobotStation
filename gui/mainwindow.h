@@ -66,10 +66,21 @@ private:
     // terminal
     QTextEdit *m_terminal;
 
+    // robot pose
+    QLabel *m_dx;
+    QLabel *m_dy;
+    QLabel *m_dz;
+
+    QLabel *m_wx;
+    QLabel *m_wy;
+    QLabel *m_wz;
+
     // groupboxes
     QLabel *createImageLabel();
     QGroupBox *createTerminalGroupBox();
     QTabWidget *createTabWidget();
+    QGroupBox *createTranslationGroupBox();
+    QGroupBox *createRotationGroupBox();
 
     void createMenus();
 
@@ -88,6 +99,10 @@ public slots:
     void writeToTerminal(const QString &message);
     void writeErrorToTerminal(const QString &message);
     void updateImage(const QImage &image);
+
+    void updateTranslationVector(const QVector3D &translation);
+    void updateRotationVector(const QVector3D &rotation);
+
 };
 
 #endif // MAINWINDOW_H

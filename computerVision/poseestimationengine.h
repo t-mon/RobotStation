@@ -62,8 +62,8 @@ private:
     QMatrix4x4 m_robotSystemTransformationMatrix;
 
     // Points for drawing
-    vector<Point2f> m_robotSystemCoordinatePoints;
-    Point2f m_robotSystemCenter;
+    vector<Point2f> m_robotSystemCoordinateDrawingPoints;
+    Point2f m_robotDrawingSystemCenter;
 
     QMatrix4x4 calculateTransformationFromOffsets();
 
@@ -73,11 +73,14 @@ private:
 
     Point2f calculateCoordinateSystemCenter(Point2f p1, Point2f p2 ,Point2f p3, Point2f p4);
 
+    QVector3D calculateEuler();
 
+    float roundValue(float val);
 
 signals:
     void coordinateSystemFound(const QMatrix4x4 &transformationMatrix);
-    void positionDataReady(const float &dx, const float &dy, const float &dz, const float &wx, const float &wy, const float &wz);
+    void transformationVectorReady(const QVector3D &transformation);
+    void eulerAnglesReady(const QVector3D &euler);
 
 private slots:
 

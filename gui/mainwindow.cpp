@@ -46,13 +46,16 @@ MainWindow::MainWindow(QWidget *parent)
     QGridLayout *mainLayout = new QGridLayout;
     m_centralWidget->setLayout(mainLayout);
 
-    mainLayout->addWidget(createImageLabel(),0,0);
-    mainLayout->addWidget(createTabWidget(),0,1);
-    mainLayout->addWidget(createTerminalGroupBox(),1,0,1,2);
+    mainLayout->addWidget(createImageLabel(),0,0,2,1);
+    mainLayout->addWidget(createTabWidget(),0,1,2,1);
+    mainLayout->addWidget(createTranslationGroupBox(),0,2,1,1);
+    mainLayout->addWidget(createRotationGroupBox(),1,2,1,1);
+    mainLayout->addWidget(createTerminalGroupBox(),2,0,1,3);
 }
 
 MainWindow::~MainWindow()
 {
+
 }
 
 QImage MainWindow::image()
@@ -72,7 +75,7 @@ QLabel *MainWindow::createImageLabel()
 QGroupBox *MainWindow::createTerminalGroupBox()
 {
     QGroupBox *terminalGroupBox = new QGroupBox(tr("Terminal"),m_centralWidget);
-    QVBoxLayout *terminalLayout = new QVBoxLayout(terminalGroupBox);
+    QVBoxLayout *terminalLayout = new QVBoxLayout();
 
     m_terminal = new QTextEdit(terminalGroupBox);
     m_terminal->setReadOnly(true);
@@ -94,6 +97,54 @@ QTabWidget *MainWindow::createTabWidget()
     tabs->addTab(cameraWidget,"Camera");
 
     return tabs;
+}
+
+QGroupBox *MainWindow::createTranslationGroupBox()
+{
+    QGroupBox *translationGroupBox = new QGroupBox(tr("Trans. [mm]"),m_centralWidget);
+    QGridLayout *mainLayout = new QGridLayout;
+
+    QLabel *dxLabel = new QLabel("x = ",this);
+    m_dx = new QLabel("-",this);
+    mainLayout->addWidget(dxLabel,0,0);
+    mainLayout->addWidget(m_dx,0,1);
+
+    QLabel *dyLabel = new QLabel("y = ",this);
+    m_dy = new QLabel("-",this);
+    mainLayout->addWidget(dyLabel,1,0);
+    mainLayout->addWidget(m_dy,1,1);
+
+    QLabel *dzLabel = new QLabel("z = ",this);
+    m_dz = new QLabel("-",this);
+    mainLayout->addWidget(dzLabel,2,0);
+    mainLayout->addWidget(m_dz,2,1);
+
+    translationGroupBox->setLayout(mainLayout);
+    return translationGroupBox;
+}
+
+QGroupBox *MainWindow::createRotationGroupBox()
+{
+    QGroupBox *rotationGroupBox = new QGroupBox(tr("Rot. [°]"),m_centralWidget);
+    QGridLayout *mainLayout = new QGridLayout;
+
+    QLabel *wxLabel = new QLabel("x = ",this);
+    m_wx = new QLabel("-",this);
+    mainLayout->addWidget(wxLabel,0,0);
+    mainLayout->addWidget(m_wx,0,1);
+
+    QLabel *wyLabel = new QLabel("y = ",this);
+    m_wy = new QLabel("-",this);
+    mainLayout->addWidget(wyLabel,1,0);
+    mainLayout->addWidget(m_wy,1,1);
+
+    QLabel *wzLabel = new QLabel("z = ",this);
+    m_wz = new QLabel("-",this);
+    mainLayout->addWidget(wzLabel,2,0);
+    mainLayout->addWidget(m_wz,2,1);
+
+    rotationGroupBox->setLayout(mainLayout);
+    return rotationGroupBox;
 }
 
 void MainWindow::createMenus()
@@ -197,4 +248,19 @@ void MainWindow::updateImage(const QImage &image)
     if(!pixmap.isNull()){
         m_imageLabel->setPixmap(pixmap.scaled(w,h,Qt::KeepAspectRatio));
     }
+}
+
+void MainWindow::updateTranslationVector(const QVector3D &translation)
+{
+    m_dx->setText(QString::number(translation.x()));
+    m_dy->setText(QString::number(translation.y()));
+    m_dz->setText(QString::number(translation.z()));
+
+}
+
+void MainWindow::updateRotationVector(const QVector3D &rotation)
+{
+    m_wx->setText(QString::number(rotation.x()));
+    m_wy->setText(QString::number(rotation.y()));
+    m_wz->setText(QString::number(rotation.z()));
 }

@@ -18,6 +18,7 @@
 
 #include "poseestimationengine.h"
 #include "core.h"
+#include <math.h>
 
 PoseEstimationEngine::PoseEstimationEngine(QObject *parent) :
     QObject(parent)
@@ -25,6 +26,9 @@ PoseEstimationEngine::PoseEstimationEngine(QObject *parent) :
     m_markerSearchEngine = new MarkerSearchEngine(this);
     m_debug = false;
     loadOffsetParameter();
+
+    connect(this,SIGNAL(transformationVectorReady(QVector3D)),Core::instance()->window(),SLOT(updateTranslationVector(QVector3D)));
+    connect(this,SIGNAL(eulerAnglesReady(QVector3D)),Core::instance()->window(),SLOT(updateRotationVector(QVector3D)));
 }
 
 void PoseEstimationEngine::updateImage(Mat &image)
@@ -40,17 +44,6 @@ void PoseEstimationEngine::updateImage(Mat &image)
     }
 
     if(m_markerList.count() != 0){
-//        qDebug() << "========================================";
-//        qDebug() << "found " << m_markerList.count() << "marker";
-//        qDebug() << "----------------------------------------";
-//        foreach (const Marker &marker, m_markerList){
-//            qDebug() << "ID             = " << marker.id();
-//            qDebug() << "Center Point   = (" << marker.center().x << "," << marker.center().y << ")";
-//            qDebug() << "----------------------------------------";
-//        }
-
-        // if we have found 4 Marker in the image...
-        // make the same with a rectangle of the 4 marker center and estiate position
 
         if(m_markerList.count() == 4){
 
@@ -61,20 +54,14 @@ void PoseEstimationEngine::updateImage(Mat &image)
                 }
             }
 
-            m_robotSystemTransformationMatrix = estimateRobotPosition();
             // JUHU we have found the robot in pose -> robotcoordinatesystem
-
-            // calculate offsets
-            m_robotSystemTransformationMatrix *= calculateTransformationFromOffsets();
-
-            qDebug() << calculateTransformationFromOffsets() << m_robotSystemTransformationMatrix;
+            m_robotSystemTransformationMatrix = estimateRobotPosition();
             emit coordinateSystemFound(m_robotSystemTransformationMatrix);
 
-
             // drawing
-            m_robotSystemCenter = calculateCoordinateSystemCenter(m_markerPoints.at(0), m_markerPoints.at(1), m_markerPoints.at(2), m_markerPoints.at(3));
+            m_robotDrawingSystemCenter = calculateCoordinateSystemCenter(m_markerPoints.at(0), m_markerPoints.at(1), m_markerPoints.at(2), m_markerPoints.at(3));
             drawOpticalCenter(image);
-            drawRobotCoordinateSystem(image,m_robotSystemCenter,m_robotSystemCoordinatePoints);
+            drawRobotCoordinateSystem(image,m_robotDrawingSystemCenter,m_robotSystemCoordinateDrawingPoints);
 
 
             if(m_debug){
@@ -98,17 +85,17 @@ QMatrix4x4 PoseEstimationEngine::calculateTransformationFromOffsets()
      *    0   0   0   1
      */
 
-    float t11 = cos(a)*cos(b);
-    float t12 = sin(a)*cos(b);
-    float t13 = -sin(b);
+    float t11 = roundValue(cos(a)*cos(b));
+    float t12 = roundValue(sin(a)*cos(b));
+    float t13 = roundValue(-sin(b));
 
-    float t21 = (cos(a)*sin(b)*sin(g)) - (sin(a)*cos(g));
-    float t22 = (sin(a)*sin(b)*sin(g)) - (cos(a)*cos(g));
-    float t23 = (cos(b)*sin(g));
+    float t21 = roundValue(cos(a)*sin(b)*sin(g)) - (sin(a)*cos(g));
+    float t22 = roundValue((sin(a)*sin(b)*sin(g)) + (cos(a)*cos(g)));
+    float t23 = roundValue((cos(b)*sin(g)));
 
-    float t31 = (cos(a)*sin(b)*cos(g)) - (sin(a)*sin(g));
-    float t32 = (sin(a)*sin(b)*cos(g)) - (cos(a)*sin(g));
-    float t33 = (cos(b)*cos(g));
+    float t31 = roundValue((cos(a)*sin(b)*cos(g)) + (sin(a)*sin(g)));
+    float t32 = roundValue((sin(a)*sin(b)*cos(g)) - (cos(a)*sin(g)));
+    float t33 = roundValue((cos(b)*cos(g)));
 
     QMatrix4x4 trans(t11, t21, t31, m_dx,
                      t12, t22, t32, m_dy,
@@ -119,8 +106,6 @@ QMatrix4x4 PoseEstimationEngine::calculateTransformationFromOffsets()
 
 QMatrix4x4 PoseEstimationEngine::estimateRobotPosition()
 {
-    QMatrix4x4 transformationMatrix;
-    transformationMatrix.setToIdentity();
 
     // Model points of marker center points
     /*
@@ -171,7 +156,6 @@ QMatrix4x4 PoseEstimationEngine::estimateRobotPosition()
 
     vector<Point2f> imagePoints = m_markerPoints;
 
-
     // get calibration parameters
     Mat intrinsic = Core::instance()->imageProcessor()->getIntrinsic();
     Mat extrinsic = Core::instance()->imageProcessor()->getExtrinsic();
@@ -193,31 +177,63 @@ QMatrix4x4 PoseEstimationEngine::estimateRobotPosition()
     // create a rotation matrix from the euclidean rotation vector
     Rodrigues(rotationVector,rotationMatrix);
 
-    // copy to rotation matrix into transformationmatrix
-    for(int col = 0; col < 3; col++){
-        for (int row = 0; row < 3; row++){
-            transformationMatrix(row,col) = rotationMatrix(row,col);
-        }
-    }
+    float r11 = rotationMatrix(0,0);
+    float r21 = rotationMatrix(1,0);
+    float r31 = rotationMatrix(2,0);
+
+    float r12 = rotationMatrix(0,1);
+    float r22 = rotationMatrix(1,1);
+    float r32 = rotationMatrix(2,1);
+
+    float r13 = rotationMatrix(0,2);
+    float r23 = rotationMatrix(1,2);
+    float r33 = rotationMatrix(2,2);
+
     // copy to translation vector into transformationmatrix
-    for(int row = 0; row < 3; row++){
-        transformationMatrix(row,3) = translationOutput.at<double>(row);
-    }
+
+    float t1 = translationOutput.at<double>(0);
+    float t2 = translationOutput.at<double>(1);
+    float t3 = translationOutput.at<double>(2);
+
+
+    QMatrix4x4 transformationMatrix(r11, r12, r13, t1,
+                                    r21, r22, r23, t2,
+                                    r31, r32, r33, t3,
+                                     0,   0,   0,   1);
 
     // invert because solvePnP calculates camera positon, nor object position
     transformationMatrix = transformationMatrix.inverted();
-    //qDebug() << "---------------------------------\n transformationMatrix = " << transformationMatrix;
+
+    // calculate offsets
+    qDebug() << "===================================================";
+    QMatrix4x4 offsetTransformationMatrix = calculateTransformationFromOffsets();
+    qDebug() << offsetTransformationMatrix << m_robotSystemTransformationMatrix;
+    m_robotSystemTransformationMatrix = transformationMatrix * calculateTransformationFromOffsets();
+    qDebug() << "===================================================";
+
+    // calculate transformation vector
+    QVector3D coordinateSytemRealCenter;
+    coordinateSytemRealCenter.setX(roundValue(m_robotSystemTransformationMatrix(0,3)));
+    coordinateSytemRealCenter.setY(roundValue(m_robotSystemTransformationMatrix(1,3)));
+    coordinateSytemRealCenter.setZ(roundValue(m_robotSystemTransformationMatrix(2,3)));
+    qDebug() << coordinateSytemRealCenter;
+    emit transformationVectorReady(coordinateSytemRealCenter);
+
+    // calculate euler angles vector
+    QVector3D coordinateSytemRealEuler = calculateEuler();
+    qDebug() << coordinateSytemRealEuler;
+    emit eulerAnglesReady(coordinateSytemRealEuler);
 
     // calculate robot coodinate system points for dawing
     // set coordinate system points
-    vector<Point3f> coordinateSytemPoints;
-    coordinateSytemPoints.push_back(Point3f(80, 0, 0)); // x-axis
-    coordinateSytemPoints.push_back(Point3f(0, -80, 0)); // y-axis
-    coordinateSytemPoints.push_back(Point3f(0, 0, -80)); // z-axis
+    vector<Point3f> coordinateSytemObjectPoints;
+    coordinateSytemObjectPoints.push_back(Point3f(80, 0, 0)); // x-axis
+    coordinateSytemObjectPoints.push_back(Point3f(0, -80, 0)); // y-axis
+    coordinateSytemObjectPoints.push_back(Point3f(0, 0, -80)); // z-axis
 
     vector<Point2f> imageCoordinateSystemPoints;
-    projectPoints(coordinateSytemPoints,rotationVector,translationVector,intrinsic,extrinsic,imageCoordinateSystemPoints);
-    m_robotSystemCoordinatePoints = imageCoordinateSystemPoints;
+    projectPoints(coordinateSytemObjectPoints,rotationVector,translationVector,intrinsic,extrinsic,imageCoordinateSystemPoints);
+    m_robotSystemCoordinateDrawingPoints = imageCoordinateSystemPoints;
 
     return transformationMatrix;
 }
@@ -265,6 +281,26 @@ Point2f PoseEstimationEngine::calculateCoordinateSystemCenter(Point2f p1, Point2
     centerPoint.y = (centerPoint1.y + centerPoint2.y) / 2;
 
     return centerPoint;
+}
+
+QVector3D PoseEstimationEngine::calculateEuler()
+{
+
+    float roll = atan2(m_robotSystemTransformationMatrix(1,0), m_robotSystemTransformationMatrix(0,0));     // x-axis
+    float pitch = atan2(-m_robotSystemTransformationMatrix(2,0), sqrt( pow(m_robotSystemTransformationMatrix(2,1),2) +  pow(m_robotSystemTransformationMatrix(2,2),2) ));    // y-axis
+    float yaw = atan2(m_robotSystemTransformationMatrix(2,1), m_robotSystemTransformationMatrix(2,2));      // z-axis
+
+    QVector3D eulerAngles;
+    eulerAngles.setX(roundValue(roll * 180 / M_PI));
+    eulerAngles.setY(roundValue(pitch * 180 / M_PI));
+    eulerAngles.setZ(roundValue(yaw * 180 / M_PI));
+
+    return eulerAngles;
+}
+
+float PoseEstimationEngine::roundValue(float val)
+{
+    return ((int)(val * 10000 + .5) / 10000.0);
 }
 
 void PoseEstimationEngine::loadOffsetParameter()
