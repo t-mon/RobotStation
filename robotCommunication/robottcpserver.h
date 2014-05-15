@@ -15,18 +15,20 @@ public:
 
 private:
     QTcpServer *m_server;
-    QList <QTcpSocket*> m_clients;
+    QTcpSocket *m_robot;
 
 signals:
     void dataReady(const QByteArray &data);
+    void robotConnectionStatusChanged(const bool &status);
 
 private slots:
     void readyRead();
     void socketError(QAbstractSocket::SocketError error);
     void newConnection();
-    void clientDisconnected();
+    void robotDisconnected();
 
 public slots:
+    void startServer();
     void sendData(const QByteArray &data);
 
 

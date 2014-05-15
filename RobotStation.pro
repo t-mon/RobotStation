@@ -33,7 +33,6 @@ SOURCES += main.cpp\
         computerVision/marker.cpp \
         tools/markersearchdialog.cpp \
         computerVision/poseestimationengine.cpp \
-        robotCommunication/robottcpclient.cpp \
         robotCommunication/robotcommander.cpp \
         gui/settingsdialog.cpp \
         gui/robotcontrolwidget.cpp \
@@ -52,7 +51,6 @@ HEADERS  += gui/mainwindow.h \
         computerVision/marker.h \
         tools/markersearchdialog.h \
         computerVision/poseestimationengine.h \
-        robotCommunication/robottcpclient.h \
         robotCommunication/robotcommander.h \
         gui/settingsdialog.h \
         gui/robotcontrolwidget.h \

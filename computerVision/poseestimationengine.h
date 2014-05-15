@@ -44,11 +44,21 @@ private:
 
     Point2f calculateCoordinateSystemCenter(Point2f p1, Point2f p2 ,Point2f p3, Point2f p4);
 
+    // Offset Parameter
+    int m_dx;
+    int m_dy;
+    int m_dz;
+    int m_wx;
+    int m_wy;
+    int m_wz;
+
 signals:
+    void coordinateSystemFound(const QMatrix4x4 &transformationMatrix);
 
 private slots:
 
 public slots:
+    void loadOffsetParameter();
 
 };
 

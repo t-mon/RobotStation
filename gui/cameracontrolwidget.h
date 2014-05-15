@@ -18,6 +18,7 @@ public:
     explicit CameraControlWidget(QWidget *parent = 0);
 
 private:
+    QComboBox *m_cameraComboBox;
     QComboBox *m_imageComboBox;
     // fps
     QLabel *m_fpsValueLabel;
@@ -40,6 +41,7 @@ private slots:
 
     void startSnapshotDialog();
 
+    void updateCamera(const int &camera);
     void updateProcessType(const int &processType);
     void updateFps(const int &fps);
     void updateBrightness(const int &brightness);

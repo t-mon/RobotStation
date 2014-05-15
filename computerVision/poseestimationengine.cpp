@@ -6,6 +6,7 @@ PoseEstimationEngine::PoseEstimationEngine(QObject *parent) :
 {
     m_markerSearchEngine = new MarkerSearchEngine(this);
     m_debug = false;
+    loadOffsetParameter();
 }
 
 void PoseEstimationEngine::updateImage(Mat &image)
@@ -50,6 +51,7 @@ void PoseEstimationEngine::updateImage(Mat &image)
 
             m_robotSystemTransformationMatrix = estimateRobotPosition();
             qDebug() << m_robotSystemTransformationMatrix;
+            emit coordinateSystemFound(m_robotSystemTransformationMatrix);
 
             m_robotSystemCenter = calculateCoordinateSystemCenter(m_markerPoints.at(0), m_markerPoints.at(1), m_markerPoints.at(2), m_markerPoints.at(3));
             drawRobotCoordinateSystem(image,m_robotSystemCenter,m_robotSystemCoordinatePoints);
@@ -207,6 +209,27 @@ Point2f PoseEstimationEngine::calculateCoordinateSystemCenter(Point2f p1, Point2
     centerPoint.y = (centerPoint1.y + centerPoint2.y) / 2;
 
     return centerPoint;
+}
+
+void PoseEstimationEngine::loadOffsetParameter()
+{
+    QSettings settings("RobotStation");
+    settings.beginGroup("TCP Offset");
+    m_dx = settings.value("dx",0).toInt();
+    m_dy = settings.value("dy",0).toInt();
+    m_dz = settings.value("dz",0).toInt();
+    m_wx = settings.value("wx",0).toInt();
+    m_wy = settings.value("wy",0).toInt();
+    m_wz = settings.value("wz",0).toInt();
+    settings.endGroup();
+
+    qDebug() << "pose engine offset parameter loaded";
+    qDebug() << "dx:" << m_dx;
+    qDebug() << "dy:" << m_dy;
+    qDebug() << "dz:" << m_dz;
+    qDebug() << "wx:" << m_wx;
+    qDebug() << "wy:" << m_wy;
+    qDebug() << "wz:" << m_wz;
 }
 
 

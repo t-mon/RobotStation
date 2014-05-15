@@ -7,6 +7,7 @@
 #include "computerVision/cameraengine.h"
 #include "computerVision/imageprocessor.h"
 #include "robotCommunication/robotcommander.h"
+#include "computerVision/poseestimationengine.h"
 
 class Core : public QObject
 {
@@ -24,6 +25,7 @@ public:
     ImageProcessor *imageProcessor();
     MainWindow *window();
     RobotCommander *robot();
+    PoseEstimationEngine *poseEngine();
 
 private:
     explicit Core(QObject *parent = 0);
@@ -33,7 +35,7 @@ private:
     ImageProcessor *m_imageProcessor;
     MainWindow *m_window;
     RobotCommander *m_robot;
-
+    PoseEstimationEngine *m_poseEngine;
 
 private slots:
     void init();

@@ -6,49 +6,10 @@ RobotControlWidget::RobotControlWidget(QWidget *parent) :
 {
     QVBoxLayout *mainLayout = new QVBoxLayout();
 
-    mainLayout->addWidget(createConnectionGroupBox());
     mainLayout->addWidget(createMovementsGroupBox());
+    mainLayout->addWidget(createProcessGroupBox());
 
     setLayout(mainLayout);
-}
-
-QGroupBox *RobotControlWidget::createConnectionGroupBox()
-{
-    QGroupBox *connectionGroupBox = new QGroupBox("Connection");
-    QGridLayout *mainLayout = new QGridLayout();
-
-    // load settings
-    QSettings settings("RobotStation");
-    QString address = settings.value("address","127.0.0.1").toString();
-    int port = settings.value("port","55555").toInt();
-
-    m_addressLabel = new QLabel("Host: ",this);
-    m_addressLineEdit= new QLineEdit(this);
-    m_addressLineEdit->setText(address);
-
-    m_portLabel = new QLabel("Port: ",this);
-    m_portLineEdit = new QLineEdit(this);
-    m_portLineEdit->setText(QString::number(port));
-
-    QHBoxLayout *buttonLayout = new QHBoxLayout();
-    m_connectButton = new QPushButton("Connect", this);
-    m_disconnectButton = new QPushButton("Disconnect",this);
-
-    connect(m_connectButton,SIGNAL(clicked()),this,SLOT(connectButtonClicked()));
-    connect(m_disconnectButton,SIGNAL(clicked()),this,SLOT(disconnectButtonClicked()));
-
-    buttonLayout->addWidget(m_connectButton);
-    buttonLayout->addWidget(m_disconnectButton);
-
-    mainLayout->addWidget(m_addressLabel,0,0);
-    mainLayout->addWidget(m_addressLineEdit,0,1);
-    mainLayout->addWidget(m_portLabel,1,0);
-    mainLayout->addWidget(m_portLineEdit,1,1);
-    mainLayout->addLayout(buttonLayout,2,0,1,2);
-
-
-    connectionGroupBox->setLayout(mainLayout);
-    return connectionGroupBox;
 }
 
 QGroupBox *RobotControlWidget::createMovementsGroupBox()
@@ -57,40 +18,72 @@ QGroupBox *RobotControlWidget::createMovementsGroupBox()
     QGridLayout *mainLayout = new QGridLayout();
 
     QPushButton *moveHomeButton = new QPushButton("Home",this);
-    connect(moveHomeButton,SIGNAL(clicked()),this,SLOT(moveHomeButtonClicked()));
+    connect(moveHomeButton,SIGNAL(clicked()),this,SLOT(moveHomeClicked()));
 
     QPushButton *moveSearchPositionButton = new QPushButton("Search Position",this);
-    connect(moveSearchPositionButton,SIGNAL(clicked()),this,SLOT(moveSearchPositionButtonClicked()));
+    connect(moveSearchPositionButton,SIGNAL(clicked()),this,SLOT(moveSearchPositionClicked()));
 
-    mainLayout->addWidget(moveHomeButton,0,0);
-    mainLayout->addWidget(moveSearchPositionButton,0,1);
+    QPushButton *stopMovementButton = new QPushButton("Stop",this);
+    connect(stopMovementButton,SIGNAL(clicked()),this,SLOT(stopMovementClicked()));
+
+    QPushButton *resetButton = new QPushButton("Reset",this);
+    connect(resetButton,SIGNAL(clicked()),this,SLOT(resetClicked()));
+
+    mainLayout->addWidget(moveHomeButton,0,0,1,2);
+    mainLayout->addWidget(moveSearchPositionButton,1,0,1,2);
+    mainLayout->addWidget(stopMovementButton,2,0,1,2);
+    mainLayout->addWidget(resetButton,3,0,1,2);
 
     movementsGroupBox->setLayout(mainLayout);
     return movementsGroupBox;
 }
 
-void RobotControlWidget::connectButtonClicked()
+QGroupBox *RobotControlWidget::createProcessGroupBox()
 {
-    QSettings settings("RobotStation");
-    settings.setValue("address",m_addressLineEdit->text());
-    settings.setValue("port",m_portLineEdit->text());
+    QGroupBox *processGroupBox = new QGroupBox("Process");
+    QGridLayout *mainLayout = new QGridLayout();
 
-    Core::instance()->robot()->connectRobot(m_addressLineEdit->text(),m_portLineEdit->text().toInt());
+    QPushButton *startProcessButton = new QPushButton("Start",this);
+    connect(startProcessButton,SIGNAL(clicked()),this,SLOT(startProcessClicked()));
+
+    QPushButton *stopProcessButton = new QPushButton("Stop",this);
+    connect(stopProcessButton,SIGNAL(clicked()),this,SLOT(stopProcessClicked()));
+
+    mainLayout->addWidget(startProcessButton,0,0);
+    mainLayout->addWidget(stopProcessButton,0,1);
+
+    processGroupBox->setLayout(mainLayout);
+    return processGroupBox;
 }
 
-void RobotControlWidget::disconnectButtonClicked()
+void RobotControlWidget::moveHomeClicked()
 {
-    Core::instance()->robot()->disconnectRobot();
-}
-
-void RobotControlWidget::moveHomeButtonClicked()
-{
-    Core::instance()->window()->writeToTerminal("move HOME clicked");
     Core::instance()->robot()->moveHome();
 }
 
-void RobotControlWidget::moveSearchPositionButtonClicked()
+void RobotControlWidget::moveSearchPositionClicked()
 {
-    Core::instance()->window()->writeToTerminal("move SEARCH POSITION clicked");
     Core::instance()->robot()->moveSearchPosition();
 }
+
+void RobotControlWidget::stopMovementClicked()
+{
+    Core::instance()->robot()->emergencyStop();
+}
+
+void RobotControlWidget::startProcessClicked()
+{
+    Core::instance()->robot()->startProcess();
+}
+
+void RobotControlWidget::stopProcessClicked()
+{
+    Core::instance()->robot()->stopProcess();
+}
+
+void RobotControlWidget::resetClicked()
+{
+    Core::instance()->robot()->reset();
+}
+
+

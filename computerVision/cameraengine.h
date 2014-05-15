@@ -28,12 +28,6 @@ private:
 
     QMutex m_imageMutex;
 
-    // fps calculation
-    QTime m_time;
-    int m_startTime;
-    int m_endTime;
-    int m_sampleNumber;
-
 protected:
     void run();
 
@@ -42,13 +36,12 @@ signals:
     void fpsReady(const int &fps);
 
 private slots:
-    void updateFps(double fps);
     void updateImage(const Mat &image);
 
 public slots:
     void startEngine();
     void stopEngine();
-
+    void updateCamera(const int &camera);
 
 };
 

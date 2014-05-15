@@ -48,8 +48,6 @@ private:
     double m_alpha;
     double m_beta;
 
-    PoseEstimationEngine *m_poseEngine;
-
     void loadSettings();
 
 private slots:

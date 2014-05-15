@@ -8,6 +8,26 @@ CameraControlWidget::CameraControlWidget(QWidget *parent) :
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
 
+    // Select camera
+    // ********************************************************************************
+    QSettings settings("RobotStation");
+    int camera = settings.value("camera",0).toInt();
+
+    QHBoxLayout *cameraSelectLayout = new QHBoxLayout(this);
+    QLabel *cameraSelectLabel = new QLabel(tr("Camera"),this);
+    cameraSelectLabel->setFixedWidth(100);
+
+    m_cameraComboBox = new QComboBox(this);
+    m_cameraComboBox->addItem("0",QVariant(0));
+    m_cameraComboBox->addItem("1",QVariant(1));
+
+    m_cameraComboBox->setCurrentIndex(camera);
+
+    connect(m_cameraComboBox,SIGNAL(activated(int)),this,SLOT(updateCamera(int)));
+
+    cameraSelectLayout->addWidget(cameraSelectLabel);
+    cameraSelectLayout->addWidget(m_cameraComboBox);
+
     // Video Start Stop
     // ********************************************************************************
     QHBoxLayout *videoLayout = new QHBoxLayout(this);
@@ -27,7 +47,6 @@ CameraControlWidget::CameraControlWidget(QWidget *parent) :
 
     // process selection
     // ********************************************************************************
-    QSettings settings("RobotStation");
     int processType = settings.value("processType",0).toInt();
 
     QHBoxLayout *processLayout = new QHBoxLayout(this);
@@ -117,6 +136,7 @@ CameraControlWidget::CameraControlWidget(QWidget *parent) :
 
     // ********************************************************************************
 
+    mainLayout->addLayout(cameraSelectLayout);
     mainLayout->addLayout(videoLayout);
     mainLayout->addWidget(takeSnapshotButton);
     mainLayout->addLayout(processLayout);
@@ -141,6 +161,11 @@ void CameraControlWidget::startSnapshotDialog()
 {
     SnapshotDialog snapshotDialog(0,Core::instance()->window()->image());
     snapshotDialog.exec();
+}
+
+void CameraControlWidget::updateCamera(const int &camera)
+{
+    Core::instance()->cameraEngine()->updateCamera(camera);
 }
 
 void CameraControlWidget::updateProcessType(const int &processType)

@@ -12,11 +12,11 @@ void Core::init()
     m_window = new MainWindow(0);
     m_cameraEngine = new CameraEngine(0);
     m_imageProcessor = new ImageProcessor(m_window);
+    m_poseEngine = new PoseEstimationEngine(m_window);
     m_robot = new RobotCommander(m_window);
 
     m_window->show();
-
-    //m_cameraEngine->startEngine();
+    m_cameraEngine->startEngine();
 }
 
 CameraEngine *Core::cameraEngine()
@@ -37,4 +37,9 @@ MainWindow *Core::window()
 RobotCommander *Core::robot()
 {
     return m_robot;
+}
+
+PoseEstimationEngine *Core::poseEngine()
+{
+    return m_poseEngine;
 }

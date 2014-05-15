@@ -111,7 +111,6 @@ void MainWindow::createMenus()
     m_settingsAction = new QAction(tr("Settings"),this);
     m_settingsMenu->addAction(m_settingsAction);
     connect(m_settingsAction,SIGNAL(triggered()),this,SLOT(startSettingsDialog()));
-
 }
 
 void MainWindow::startCalibrationDialog()

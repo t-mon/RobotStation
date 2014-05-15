@@ -4,7 +4,8 @@
 CameraEngine::CameraEngine(QObject *parent) :
     QThread(parent)
 {   
-    m_camera = 1;
+    QSettings settings("RobotStation");
+    m_camera = settings.value("camera",0).toInt();
     m_stop = false;
     connect(this,SIGNAL(imageReady(Mat)),this,SLOT(updateImage(Mat)));
 }
@@ -28,7 +29,7 @@ void CameraEngine::run()
     VideoCapture capture;
     capture.open(m_camera);
     if(!capture.isOpened()){
-        qDebug() << "ERROR: could not open camera capture";
+        qDebug() << "ERROR: could not open camera capture" << m_camera;
     }
     qDebug() << "   Frame Size: " << capture.get(CV_CAP_PROP_FRAME_WIDTH) << capture.get(CV_CAP_PROP_FRAME_HEIGHT);
     m_frameSize = Size(capture.get(CV_CAP_PROP_FRAME_WIDTH), capture.get(CV_CAP_PROP_FRAME_HEIGHT));
@@ -44,35 +45,20 @@ void CameraEngine::run()
         }
         m_stopMutex.unlock();
 
-        m_startTime = m_time.elapsed();
-        m_time.start();
-
-
         // Capture frame (if available)
         if (!capture.grab())
             continue;
-
-        //qDebug() << "fps:" << fps;
 
         if(!capture.retrieve(image)){
             qDebug() << "ERROR: could not read image image from camera.";
         }
         emit updateImage(image);
-        //emit fpsReady(captureTime);
     }
     qDebug() << "camera thread stopped";
     capture.release();
     if(capture.isOpened()){
         qDebug() << "could not release capture";
     }
-}
-
-void CameraEngine::updateFps(double fps)
-{
-    //float dt = fps - m_captureTime;
-    //m_captureTime = fps;
-    //float actualFps = (float)1000/dt;
-    //Core::instance()->window()->setStatusBarText("fps: " + QString::number(actualFps));
 }
 
 void CameraEngine::updateImage(const Mat &image)
@@ -99,6 +85,17 @@ void CameraEngine::stopEngine()
     m_stopMutex.unlock();
 
     Core::instance()->imageProcessor()->stopProcessor();
+}
+
+void CameraEngine::updateCamera(const int &camera)
+{
+    stopEngine();
+    wait(1000);
+    QSettings settings("RobotStation");
+    settings.setValue("camera",camera);
+    m_camera = camera;
+    qDebug() << "camera changed to " << camera;
+    startEngine();
 }
 
 

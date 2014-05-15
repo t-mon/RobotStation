@@ -8,7 +8,6 @@ ImageProcessor::ImageProcessor(QObject *parent) :
 
     m_timer = new QTimer(this);
     m_timer->setInterval(100);
-    m_poseEngine = new PoseEstimationEngine(this);
 
     connect(m_timer,SIGNAL(timeout()),this,SLOT(updateImage()));
 }
@@ -279,7 +278,7 @@ void ImageProcessor::processImage()
     }
     case 1:{
         // result image
-        m_poseEngine->updateImage(image);
+        Core::instance()->poseEngine()->updateImage(image);
         break;
     }
     default:

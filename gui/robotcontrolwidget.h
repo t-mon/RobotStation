@@ -4,10 +4,12 @@
 #include <QWidget>
 #include <QLabel>
 #include <QLayout>
+#include <QGridLayout>
 #include <QLineEdit>
 #include <QDebug>
 #include <QPushButton>
 #include <QGroupBox>
+
 
 class RobotControlWidget : public QWidget
 {
@@ -15,26 +17,20 @@ class RobotControlWidget : public QWidget
 public:
     explicit RobotControlWidget(QWidget *parent = 0);
 
-    QLabel *m_addressLabel;
-    QLabel *m_portLabel;
-    QLineEdit *m_addressLineEdit;
-    QLineEdit *m_portLineEdit;
-
-    QPushButton *m_connectButton;
-    QPushButton *m_disconnectButton;
-
-
-    QGroupBox *createConnectionGroupBox();
+private:
     QGroupBox *createMovementsGroupBox();
-
+    QGroupBox *createProcessGroupBox();
 
 signals:
 
 private slots:
-    void connectButtonClicked();
-    void disconnectButtonClicked();
-    void moveHomeButtonClicked();
-    void moveSearchPositionButtonClicked();
+    void moveHomeClicked();
+    void moveSearchPositionClicked();
+    void stopMovementClicked();
+    void startProcessClicked();
+    void stopProcessClicked();
+    void resetClicked();
+
 
 public slots:
 
