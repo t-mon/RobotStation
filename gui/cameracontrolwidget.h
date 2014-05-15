@@ -65,6 +65,8 @@ private slots:
     void updateBrightness(const int &brightness);
     void updateContrast(const int &contrast);
 
+    void updateHorizontalFlip(const bool &flip);
+    void updateVerticalFlip(const bool &flip);
 
 public slots:
 

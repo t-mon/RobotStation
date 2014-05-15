@@ -191,6 +191,15 @@ void ImageProcessor::loadSettings()
     qDebug() << "brightness = " << m_beta;
     qDebug() << "----------------------------------------";
 
+    settings.beginGroup("flipimage");
+    m_flipHorizontal = settings.value("horizontal",0).toBool();
+    qDebug() << "flip horizontal = " << m_flipHorizontal;
+    qDebug() << "----------------------------------------";
+    m_flipVertical = settings.value("vertical",0).toBool();
+    qDebug() << "flip vertical = " << m_flipVertical;
+    qDebug() << "----------------------------------------";
+    settings.endGroup();
+
     // camera calibration parameter
     // intrinsic
     settings.beginGroup("intrinsic");
@@ -308,7 +317,7 @@ void ImageProcessor::processImage()
         break;
     }
     QImage imageToShow = convertMatToQimage(image);
-    Core::instance()->window()->updateImage(imageToShow.mirrored(false,false));
+    Core::instance()->window()->updateImage(imageToShow.mirrored(m_flipHorizontal,m_flipVertical));
 }
 
 void ImageProcessor::updateImage()
@@ -353,6 +362,24 @@ void ImageProcessor::updateContrast(const double &contrast)
     qDebug() << "contrast =" << contrast;
     QSettings settings("RobotStation");
     settings.setValue("contrast",contrast);
+}
+
+void ImageProcessor::updateHorizontalFlip(const bool &flip)
+{
+    m_flipHorizontal = flip;
+    QSettings settings("RobotStation");
+    settings.beginGroup("flipimage");
+    settings.setValue("horizontal",flip);
+    settings.endGroup();
+}
+
+void ImageProcessor::updateVerticalFlip(const bool &flip)
+{
+    m_flipVertical = flip;
+    QSettings settings("RobotStation");
+    settings.beginGroup("flipimage");
+    settings.setValue("vertical",flip);
+    settings.endGroup();
 }
 
 void ImageProcessor::updateFps(const int &fps)

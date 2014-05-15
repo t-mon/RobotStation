@@ -58,6 +58,19 @@ CameraControlWidget::CameraControlWidget(QWidget *parent) :
     connect(startVideo,SIGNAL(clicked()),this,SLOT(startVideo()));
     connect(stopVideo,SIGNAL(clicked()),this,SLOT(stopVideo()));
 
+    // Flip display image
+    // ********************************************************************************
+    QCheckBox *flipHorizontalBox = new QCheckBox("Flip horizpntal",this);
+    QCheckBox *flipVerticalBox = new   QCheckBox("Flip vertical",this);
+
+    settings.beginGroup("flipimage");
+    flipHorizontalBox->setChecked(settings.value("horizontal",false).toBool());
+    flipVerticalBox->setChecked(settings.value("vertical",false).toBool());
+    settings.endGroup();
+
+    connect(flipHorizontalBox,SIGNAL(toggled(bool)),this,SLOT(updateHorizontalFlip(bool)));
+    connect(flipVerticalBox,SIGNAL(toggled(bool)),this,SLOT(updateVerticalFlip(bool)));
+
     // Take Snapshot
     // ********************************************************************************
     QPushButton *takeSnapshotButton = new QPushButton("Take snapshot");
@@ -156,6 +169,8 @@ CameraControlWidget::CameraControlWidget(QWidget *parent) :
 
     mainLayout->addLayout(cameraSelectLayout);
     mainLayout->addLayout(videoLayout);
+    mainLayout->addWidget(flipHorizontalBox);
+    mainLayout->addWidget(flipVerticalBox);
     mainLayout->addWidget(takeSnapshotButton);
     mainLayout->addLayout(processLayout);
     mainLayout->addLayout(fpsLayout);
@@ -208,4 +223,14 @@ void CameraControlWidget::updateContrast(const int &contrast)
     double contrastPercentage = ((double)contrast)/100;
     m_contrastValueLabel->setText(QString::number(contrastPercentage));
     Core::instance()->imageProcessor()->updateContrast(contrastPercentage);
+}
+
+void CameraControlWidget::updateHorizontalFlip(const bool &flip)
+{
+    Core::instance()->imageProcessor()->updateHorizontalFlip(flip);
+}
+
+void CameraControlWidget::updateVerticalFlip(const bool &flip)
+{
+    Core::instance()->imageProcessor()->updateVerticalFlip(flip);
 }

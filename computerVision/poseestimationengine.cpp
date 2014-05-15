@@ -291,9 +291,9 @@ QVector3D PoseEstimationEngine::calculateEuler()
     float yaw = atan2(m_robotSystemTransformationMatrix(2,1), m_robotSystemTransformationMatrix(2,2));      // z-axis
 
     QVector3D eulerAngles;
-    eulerAngles.setX(roundValue(roll * 180 / M_PI));
-    eulerAngles.setY(roundValue(pitch * 180 / M_PI));
-    eulerAngles.setZ(roundValue(yaw * 180 / M_PI));
+    eulerAngles.setX(roundValue(pitch * 180 / M_PI));
+    eulerAngles.setY(roundValue(yaw * 180 / M_PI));
+    eulerAngles.setZ(roundValue(roll * 180 / M_PI));
 
     return eulerAngles;
 }

@@ -67,6 +67,9 @@ private:
     double m_alpha;
     double m_beta;
 
+    bool m_flipHorizontal;
+    bool m_flipVertical;
+
     void loadSettings();
 
 private slots:
@@ -81,6 +84,8 @@ public slots:
     void updateProcessType(const int& processType);
     void updateBrightness(const double &brightness);
     void updateContrast(const double &contrast);
+    void updateHorizontalFlip(const bool &flip);
+    void updateVerticalFlip(const bool &flip);
 
     void updateFps(const int &fps);
     void startProcessor();
