@@ -25,19 +25,67 @@ RobotCommander::RobotCommander(QObject *parent) :
     m_server = new RobotTcpServer(this);
     connect(m_server,SIGNAL(dataReady(QByteArray)),this,SLOT(processRobotMessage(QByteArray)));
     connect(Core::instance()->poseEngine(),SIGNAL(coordinateSystemFound(QMatrix4x4)),this,SLOT(coordinateSystemFound(QMatrix4x4)));
-
-    m_state = StateDone;
+    connect(m_server,SIGNAL(robotConnectionStateChanged(bool)),this,SLOT(robotConnectionStateChanged(bool)));
+    m_state = StateNothing;
+    m_robotConnectionState = false;
     m_server->startServer();
     m_collectingCoordinateSystems = false;
+}
+
+bool RobotCommander::connected()
+{
+    return m_robotConnectionState;
+}
+
+void RobotCommander::parsePointInformation(QByteArray data)
+{
+    qDebug() << "parsing point " << data << "...";
+    qDebug() << "----------------------------------------";
+
+    QString xString = data.mid(data.indexOf("X:") + 2, data.indexOf("Y:")-2 - data.indexOf("X:"));
+    float x = xString.toFloat();
+    qDebug() << "x = " << x;
+
+    QString yString = data.mid(data.indexOf("Y:") + 2, data.indexOf("Z:")-2 - data.indexOf("Y:"));
+    float y = yString.toFloat();
+    qDebug() << "y = " << y;
+
+    QString zString = data.mid(data.indexOf("Z:") + 2, data.indexOf("U:")-2 - data.indexOf("Z:"));
+    float z = zString.toFloat();
+    qDebug() << "z = " << z;
+
+    QString uString = data.mid(data.indexOf("U:") + 2, data.indexOf("V:")-2 - data.indexOf("U:"));
+    float u = uString.toFloat();
+    qDebug() << "u = " << u;
+
+    QString vString = data.mid(data.indexOf("V:") + 2, data.indexOf("W:")-2 - data.indexOf("V:"));
+    float v = vString.toFloat();
+    qDebug() << "v = " << v;
+
+    QString wString = data.mid(data.indexOf("W:") + 2, data.indexOf("/R")-2 - data.indexOf("W:"));
+    float w = wString.toFloat();
+    qDebug() << "w = " << w;
+    qDebug() << "----------------------------------------";
+
+    QVector3D translation = QVector3D(x,y,z);
+    QVector3D rotation = QVector3D(u,v,w);
+
+    emit robotPointReceived(translation,rotation);
 }
 
 void RobotCommander::processRobotMessage(const QByteArray &data)
 {
     qDebug() << "robot send: " << data;
-//    if(data != "OK\n"){
-//        qDebug() << "ERROR: something went wrong on robot";
-//        return;
-//    }
+    //    if(data != "OK\n"){
+    //        qDebug() << "ERROR: something went wrong on robot";
+    //        return;
+    //    }
+
+    if(data.contains("J6F0")){
+        qDebug() << "received point information...";
+        parsePointInformation(data);
+        return;
+    }
 
     switch (m_state) {
     case StateInit:
@@ -81,6 +129,7 @@ void RobotCommander::processRobotMessage(const QByteArray &data)
     case StateSleeping:
         m_state = StateDone;
         break;
+    case StateNothing:
     case StateDone:
         Core::instance()->window()->writeToTerminal("robot: sleeping... ZZZZzzz...");
         break;
@@ -98,10 +147,10 @@ void RobotCommander::coordinateSystemFound(const QMatrix4x4 &transformationmatri
 {
     if(m_collectingCoordinateSystems){
         m_coordinateSystems.append(transformationmatrix);
-        if(m_coordinateSystems.count() >= 10){
+        if(m_coordinateSystems.count() >= 1){
             // if we have found 10 coordinatesystems
             qDebug() << "------------------------------";
-            qDebug() << "Collected 10 coordinatesystems";
+            qDebug() << "Collected 1 coordinatesystems";
 
             m_collectingCoordinateSystems = false;
             qDebug() << "-> State = Send KKS";
@@ -112,12 +161,16 @@ void RobotCommander::coordinateSystemFound(const QMatrix4x4 &transformationmatri
     }
 }
 
+void RobotCommander::robotConnectionStateChanged(bool connectionState)
+{
+    m_robotConnectionState = connectionState;
+}
+
 void RobotCommander::startProcess()
 {
     Core::instance()->window()->writeToTerminal("Robot process started");
     m_server->sendData("Start");
     m_state = StateInit;
-
 }
 
 void RobotCommander::stopProcess()
@@ -125,7 +178,6 @@ void RobotCommander::stopProcess()
     Core::instance()->window()->writeToTerminal("Robot process stopped");
     emergencyStop();
 }
-
 
 void RobotCommander::moveHome()
 {

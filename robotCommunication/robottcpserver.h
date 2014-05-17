@@ -23,6 +23,7 @@
 #include <QDebug>
 #include <QTcpSocket>
 #include <QTcpServer>
+#include <QList>
 #include <QNetworkInterface>
 
 class RobotTcpServer : public QObject
@@ -33,11 +34,11 @@ public:
 
 private:
     QTcpServer *m_server;
-    QTcpSocket *m_robot;
+    QList<QTcpSocket*> m_robotList;
 
 signals:
     void dataReady(const QByteArray &data);
-    void robotConnectionStatusChanged(const bool &status);
+    void robotConnectionStateChanged(const bool &status);
 
 private slots:
     void readyRead();

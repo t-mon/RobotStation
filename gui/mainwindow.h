@@ -56,6 +56,7 @@ private:
     QAction *m_markerCreatorAction;
     QAction *m_markerSearchAction;
     QAction *m_settingsAction;
+    QAction *m_toolCalibrationAction;
 
     QStatusBar *m_statusBar;
 
@@ -92,6 +93,7 @@ private slots:
     void startSnapshotDialog();
     void startMarkerGeneratorDialog();
     void startMarkerSearchDialog();
+    void startToolCalibrationWizard();
     void startSettingsDialog();
 
 public slots:

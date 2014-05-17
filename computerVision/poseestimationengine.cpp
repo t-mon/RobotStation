@@ -72,7 +72,39 @@ void PoseEstimationEngine::updateImage(Mat &image)
     }
 }
 
-QMatrix4x4 PoseEstimationEngine::calculateTransformationFromOffsets()
+QMatrix4x4 PoseEstimationEngine::calculateTransformationFromPoint(QVector3D transformation, QVector3D rotation)
+{
+    // deg to rad
+    float g = rotation.x() * M_PI / 180;
+    float b = rotation.y() * M_PI / 180;
+    float a = rotation.z() * M_PI / 180;
+
+    /*   t11 t21 t31 dx
+     *   t12 t22 t32 dy
+     *   t13 t23 t33 dz
+     *    0   0   0   1
+     */
+
+    float t11 = roundValue(cos(a)*cos(b));
+    float t12 = roundValue(sin(a)*cos(b));
+    float t13 = roundValue(-sin(b));
+
+    float t21 = roundValue(cos(a)*sin(b)*sin(g)) - (sin(a)*cos(g));
+    float t22 = roundValue((sin(a)*sin(b)*sin(g)) + (cos(a)*cos(g)));
+    float t23 = roundValue((cos(b)*sin(g)));
+
+    float t31 = roundValue((cos(a)*sin(b)*cos(g)) + (sin(a)*sin(g)));
+    float t32 = roundValue((sin(a)*sin(b)*cos(g)) - (cos(a)*sin(g)));
+    float t33 = roundValue((cos(b)*cos(g)));
+
+    QMatrix4x4 trans(t11, t21, t31, transformation.x(),
+                     t12, t22, t32, transformation.y(),
+                     t13, t23, t33, transformation.z(),
+                     0,   0,   0,   1);
+    return trans;
+}
+
+QMatrix4x4 PoseEstimationEngine::calculateTransformationFromPoint()
 {
     // deg to rad
     float g = (float)m_wx * M_PI / 180;
@@ -206,9 +238,9 @@ QMatrix4x4 PoseEstimationEngine::estimateRobotPosition()
 
     // calculate offsets
     qDebug() << "===================================================";
-    QMatrix4x4 offsetTransformationMatrix = calculateTransformationFromOffsets();
+    QMatrix4x4 offsetTransformationMatrix = calculateTransformationFromPoint();
     qDebug() << offsetTransformationMatrix << m_robotSystemTransformationMatrix;
-    m_robotSystemTransformationMatrix = transformationMatrix * calculateTransformationFromOffsets();
+    m_robotSystemTransformationMatrix = transformationMatrix * calculateTransformationFromPoint();
     qDebug() << "===================================================";
 
     // calculate transformation vector

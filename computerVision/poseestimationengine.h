@@ -42,6 +42,7 @@ class PoseEstimationEngine : public QObject
 public:
     explicit PoseEstimationEngine(QObject *parent = 0);
     void updateImage(Mat &image);
+    QMatrix4x4 calculateTransformationFromPoint(QVector3D transformation, QVector3D rotation);
 
 
 private:
@@ -65,7 +66,7 @@ private:
     vector<Point2f> m_robotSystemCoordinateDrawingPoints;
     Point2f m_robotDrawingSystemCenter;
 
-    QMatrix4x4 calculateTransformationFromOffsets();
+    QMatrix4x4 calculateTransformationFromPoint();
 
     QMatrix4x4 estimateRobotPosition();
     void drawRobotCoordinateSystem(Mat &img, Point2f center, vector<Point2f> coordinateSystemPoints);

@@ -37,37 +37,42 @@ RobotTcpServer::RobotTcpServer(QObject *parent) :
 
 void RobotTcpServer::readyRead()
 {
-    QByteArray data = m_robot->readAll();
-    qDebug() << "-----> data comming from" << m_robot->peerAddress().toString()  << "\n" << data;
+    QTcpSocket *robot = qobject_cast<QTcpSocket*>(sender());
+    QByteArray data = robot->readAll();
+    qDebug() << "-----> data comming from" << robot->peerAddress().toString()  << "\n" << data;
     emit dataReady(data);
 }
 
 void RobotTcpServer::socketError(QAbstractSocket::SocketError error)
 {
-    Core::instance()->window()->writeErrorToTerminal("ERROR: " + m_robot->errorString());
-    qDebug() <<  error << m_robot->errorString();
+    QTcpSocket *robot = qobject_cast<QTcpSocket*>(sender());
+    Core::instance()->window()->writeErrorToTerminal(robot->errorString());
+    qDebug() <<  error << robot->errorString();
 }
 
 void RobotTcpServer::newConnection()
 {
-    if(m_robot->state() == QAbstractSocket::ConnectedState){
+    if(m_robotList.count() >= 1){
         Core::instance()->window()->writeErrorToTerminal("ERROR: a client tryed to connect, but the robot is allready connected!");
         return;
     }
-    m_robot = m_server->nextPendingConnection();
-    Core::instance()->window()->writeToTerminal("Robot (" + m_robot->peerAddress().toString() + ") connected.");
-    Core::instance()->window()->setStatusBarText("Robot (" + m_robot->peerAddress().toString() + ") connected.");
-    connect(m_robot,SIGNAL(readyRead()),this,SLOT(readyRead()));
-    connect(m_robot,SIGNAL(disconnected()),this,SLOT(robotDisconnected()));
-    connect(m_robot,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(socketError(QAbstractSocket::SocketError)));
-    sendData("Hello from RobotStation!");
+    QTcpSocket *robot = m_server->nextPendingConnection();
+    Core::instance()->window()->writeToTerminal("Robot (" + robot->peerAddress().toString() + ") connected.");
+    Core::instance()->window()->setStatusBarText("Robot (" + robot->peerAddress().toString() + ") connected.");
+    connect(robot,SIGNAL(readyRead()),this,SLOT(readyRead()));
+    connect(robot,SIGNAL(disconnected()),this,SLOT(robotDisconnected()));
+    connect(robot,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(socketError(QAbstractSocket::SocketError)));
+    m_robotList.append(robot);
+    emit robotConnectionStateChanged(true);
 }
 
 void RobotTcpServer::robotDisconnected()
 {
-    Core::instance()->window()->writeErrorToTerminal("Robot (" + m_robot->peerAddress().toString() + ") disconnected.");
+    QTcpSocket *robot = qobject_cast<QTcpSocket*>(sender());
+    Core::instance()->window()->writeErrorToTerminal("Robot (" + robot->peerAddress().toString() + ") disconnected.");
     Core::instance()->window()->setStatusBarText("Server listening ...");
-    emit robotConnectionStatusChanged(false);
+    m_robotList.clear();
+    emit robotConnectionStateChanged(false);
 }
 
 void RobotTcpServer::startServer()
@@ -84,5 +89,7 @@ void RobotTcpServer::startServer()
 
 void RobotTcpServer::sendData(const QByteArray &data)
 {
-    m_robot->write(data);
+    foreach(QTcpSocket *robot,m_robotList){
+        robot->write(data);
+    }
 }

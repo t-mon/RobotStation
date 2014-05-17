@@ -26,6 +26,7 @@
 #include "tools/snapshotdialog.h"
 #include "tools/qrcodesearchdialog.h"
 #include "tools/markersearchdialog.h"
+#include "tools/toolcalibrationwizard.h"
 #include "gui/settingsdialog.h"
 #include "gui/robotcontrolwidget.h"
 #include "gui/cameracontrolwidget.h"
@@ -169,6 +170,10 @@ void MainWindow::createMenus()
     m_toolMenu->addAction(m_markerSearchAction);
     connect(m_markerSearchAction,SIGNAL(triggered()),this,SLOT(startMarkerSearchDialog()));
 
+    m_toolCalibrationAction = new QAction(tr("Tool Calibration Wizard"),this);
+    m_toolMenu->addAction(m_toolCalibrationAction);
+    connect(m_toolCalibrationAction,SIGNAL(triggered()),this,SLOT(startToolCalibrationWizard()));
+
     m_toolMenu->addSeparator();
 
     m_qrCodeSearchAction = new QAction(tr("&QR-code search engine"),this);
@@ -210,6 +215,12 @@ void MainWindow::startMarkerSearchDialog()
 {
     MarkerSearchDialog markerSearch;
     markerSearch.exec();
+}
+
+void MainWindow::startToolCalibrationWizard()
+{
+    ToolCalibrationWizard *toolCalibrationWizard = new ToolCalibrationWizard();
+    toolCalibrationWizard->exec();
 }
 
 void MainWindow::startSettingsDialog()

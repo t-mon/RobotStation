@@ -41,25 +41,35 @@ public:
         StateDrawing,
         StateFinishing,
         StateError,
+        StateNothing,
         StateDone
     };
 
     explicit RobotCommander(QObject *parent = 0);
+    bool connected();
 
 private:
     RobotTcpServer *m_server;
     ProcessState m_state;
 
+    bool m_robotConnectionState;
+
     bool m_collectingCoordinateSystems;
     QList<QMatrix4x4> m_coordinateSystems;
 
+    void parsePointInformation(QByteArray data);
+
+
 signals:
+    void robotPointReceived(const QVector3D &translation, const QVector3D &rotation);
 
 private slots:
     void processRobotMessage(const QByteArray &data);
     void coordinateSystemFound(const QMatrix4x4 &transformationmatrix);
 
 public slots:
+    void robotConnectionStateChanged(bool connectionState);
+
     void startProcess();
     void stopProcess();
 
