@@ -23,7 +23,7 @@
 CameraControlWidget::CameraControlWidget(QWidget *parent) :
     QWidget(parent)
 {
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    QVBoxLayout *mainLayout = new QVBoxLayout();
     setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
 
     // Select camera
@@ -31,7 +31,7 @@ CameraControlWidget::CameraControlWidget(QWidget *parent) :
     QSettings settings("RobotStation");
     int camera = settings.value("camera",0).toInt();
 
-    QHBoxLayout *cameraSelectLayout = new QHBoxLayout(this);
+    QHBoxLayout *cameraSelectLayout = new QHBoxLayout();
     QLabel *cameraSelectLabel = new QLabel(tr("Camera"),this);
     cameraSelectLabel->setFixedWidth(100);
 
@@ -48,7 +48,7 @@ CameraControlWidget::CameraControlWidget(QWidget *parent) :
 
     // Video Start Stop
     // ********************************************************************************
-    QHBoxLayout *videoLayout = new QHBoxLayout(this);
+    QHBoxLayout *videoLayout = new QHBoxLayout();
     QPushButton *startVideo = new QPushButton("Start video", this);
     QPushButton *stopVideo = new QPushButton("Stop video", this);
 
@@ -80,7 +80,7 @@ CameraControlWidget::CameraControlWidget(QWidget *parent) :
     // ********************************************************************************
     int processType = settings.value("processType",0).toInt();
 
-    QHBoxLayout *processLayout = new QHBoxLayout(this);
+    QHBoxLayout *processLayout = new QHBoxLayout();
     QLabel *processLabel = new QLabel(tr("Process"),this);
     processLabel->setFixedWidth(100);
 
@@ -97,7 +97,7 @@ CameraControlWidget::CameraControlWidget(QWidget *parent) :
 
     // Set Fps
     // ********************************************************************************
-    QHBoxLayout *fpsLayout = new QHBoxLayout(this);
+    QHBoxLayout *fpsLayout = new QHBoxLayout();
     QLabel *fpsDescriptionLabel = new QLabel(tr("fps"),this);
     fpsDescriptionLabel->setFixedWidth(100);
     m_fpsValueLabel = new QLabel("20",this);
@@ -119,7 +119,7 @@ CameraControlWidget::CameraControlWidget(QWidget *parent) :
 
     // Contrast
     // ********************************************************************************
-    QHBoxLayout *contrastLayout = new QHBoxLayout(this);
+    QHBoxLayout *contrastLayout = new QHBoxLayout();
     double contrast = settings.value("contrast",1).toDouble();
 
     QLabel *contrastLabel = new QLabel(tr("Contrast: "),this);
@@ -143,7 +143,7 @@ CameraControlWidget::CameraControlWidget(QWidget *parent) :
 
     // Brightness
     // ********************************************************************************
-    QHBoxLayout *brightnessLayout = new QHBoxLayout(this);
+    QHBoxLayout *brightnessLayout = new QHBoxLayout();
     double brightness = settings.value("brightness",0).toDouble();
 
     QLabel *brightnessLabel = new QLabel(tr("Brightness: "),this);

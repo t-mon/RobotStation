@@ -44,6 +44,10 @@ public:
     void updateImage(Mat &image);
     QMatrix4x4 calculateTransformationFromPoint(QVector3D transformation, QVector3D rotation);
 
+    QVector3D calculateTranslationFromTransformation(QMatrix4x4 transformation);
+    QVector3D calculateRotationFromTransformation(QMatrix4x4 transformation);
+
+    float roundValue(float val);
 
 private:
     // Offset Parameter
@@ -76,7 +80,6 @@ private:
 
     QVector3D calculateEuler();
 
-    float roundValue(float val);
 
 signals:
     void coordinateSystemFound(const QMatrix4x4 &transformationMatrix);

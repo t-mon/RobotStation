@@ -79,6 +79,7 @@ public slots:
     void reset();
 
     void sendCoordinateSystemData();
+    void requestPointPosition();
 
 };
 

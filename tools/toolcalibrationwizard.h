@@ -22,22 +22,33 @@ private:
     QWizardPage *createNotConnectedPage();
     QWizardPage *createPlaceCoordinateSystemPage();
     QWizardPage *createFoundCoordinateSystemPage();
-    QLabel *m_cameraTransformationLabel;
+    QWizardPage *createTeachCoordinateSystemPage();
+    QWizardPage *createTeachSystemFinishedPage();
+    QWizardPage *createGetTcpPositionPage();
+    QWizardPage *createCalculateOffsetPage();
 
-    void initState();
-    void searchState();
+    QLabel *m_cameraTransformationLabel;
+    QLabel *m_toolPointLabel;
+    QLabel *m_offsetTransformationLabel;
+
 
     bool m_searchCoordinateSystem;
     bool m_receivePoint;
     QMatrix4x4 m_cameraTransformation;
     QMatrix4x4 m_toolTransformation;
 
+    QMatrix4x4 m_offsetTransformation;
+
+    float roundValue(float value);
+    void calculateOffset();
+    void saveOffset();
 
 signals:
 
 private slots:
     void nextStep(const int &id);
     void searchPositionButtonClicked();
+    void requestPointButtonClicked();
     void coordinateSystemFound(const QMatrix4x4 &cameraTransformation);
     void robotPointReceived(const QVector3D &translation, const QVector3D &rotation);
 

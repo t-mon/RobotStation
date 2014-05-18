@@ -209,3 +209,9 @@ void RobotCommander::sendCoordinateSystemData()
     m_server->sendData("KKS data...bla bla");
     m_state = StateDrawing;
 }
+
+void RobotCommander::requestPointPosition()
+{
+    Core::instance()->window()->writeToTerminal("Request robot TCP position");
+    m_server->sendData("GetTcpPoint");
+}

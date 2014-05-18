@@ -79,6 +79,7 @@ QGroupBox *MainWindow::createTerminalGroupBox()
     QVBoxLayout *terminalLayout = new QVBoxLayout();
 
     m_terminal = new QTextEdit(terminalGroupBox);
+    m_terminal->setStyleSheet("QTextEdit { background-color: QColor(0, 0, 0, 255)}");
     m_terminal->setReadOnly(true);
 
     terminalLayout->addWidget(m_terminal);

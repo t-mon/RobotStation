@@ -104,6 +104,30 @@ QMatrix4x4 PoseEstimationEngine::calculateTransformationFromPoint(QVector3D tran
     return trans;
 }
 
+QVector3D PoseEstimationEngine::calculateTranslationFromTransformation(QMatrix4x4 transformation)
+{
+    return QVector3D(transformation(0,3),transformation(1,3),transformation(2,3));
+}
+
+QVector3D PoseEstimationEngine::calculateRotationFromTransformation(QMatrix4x4 transformation)
+{
+    float u = atan2(transformation(1,0), transformation(0,0));     // x-axis
+    float v = atan2(-transformation(2,0), sqrt( pow(transformation(2,1),2) +  pow(transformation(2,2),2) ));    // y-axis
+    float w = atan2(transformation(2,1), transformation(2,2));      // z-axis
+
+    QVector3D rotation;
+    rotation.setX(u * 180 / M_PI);
+    rotation.setY(v * 180 / M_PI);
+    rotation.setZ(w * 180 / M_PI);
+
+    return rotation;
+}
+
+float PoseEstimationEngine::roundValue(float val)
+{
+    return ((int)(val * 10000 + .5) / 10000.0);
+}
+
 QMatrix4x4 PoseEstimationEngine::calculateTransformationFromPoint()
 {
     // deg to rad
@@ -328,11 +352,6 @@ QVector3D PoseEstimationEngine::calculateEuler()
     eulerAngles.setZ(roundValue(roll * 180 / M_PI));
 
     return eulerAngles;
-}
-
-float PoseEstimationEngine::roundValue(float val)
-{
-    return ((int)(val * 10000 + .5) / 10000.0);
 }
 
 void PoseEstimationEngine::loadOffsetParameter()
