@@ -39,7 +39,7 @@ void RobotTcpServer::readyRead()
 {
     QTcpSocket *robot = qobject_cast<QTcpSocket*>(sender());
     QByteArray data = robot->readAll();
-    qDebug() << "-----> data comming from" << robot->peerAddress().toString()  << "\n" << data;
+    qDebug() << "-----> data comming from" << robot->peerAddress().toString();
     emit dataReady(data);
 }
 

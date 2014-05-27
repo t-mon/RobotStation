@@ -76,13 +76,13 @@ void RobotCommander::parsePointInformation(QByteArray data)
 void RobotCommander::processRobotMessage(const QByteArray &data)
 {
     qDebug() << "robot send: " << data;
-    //    if(data != "OK\n"){
-    //        qDebug() << "ERROR: something went wrong on robot";
-    //        return;
-    //    }
+    if(data.contains("OK")){
+        Core::instance()->window()->writeToTerminal("       ...OK.");
+    }
 
     if(data.contains("J6F0")){
         qDebug() << "received point information...";
+        Core::instance()->window()->writeToTerminal("robot: received point information...");
         parsePointInformation(data);
         return;
     }
@@ -91,7 +91,7 @@ void RobotCommander::processRobotMessage(const QByteArray &data)
     case StateInit:
         qDebug() << "-> State = Init";
         Core::instance()->window()->writeToTerminal("robot: initializing...");
-        m_server->sendData("Reset");
+        m_server->sendData("Init");
         m_state = StateStart;
         break;
     case StateStart:
@@ -136,7 +136,7 @@ void RobotCommander::processRobotMessage(const QByteArray &data)
     case StateStop:
         qDebug() << "-> State = Stop";
         Core::instance()->window()->writeToTerminal("robot STOPED!");
-        m_state = StateSleeping;
+        m_state = StateNothing;
         break;
     default:
         break;
@@ -146,18 +146,15 @@ void RobotCommander::processRobotMessage(const QByteArray &data)
 void RobotCommander::coordinateSystemFound(const QMatrix4x4 &transformationmatrix)
 {
     if(m_collectingCoordinateSystems){
-        m_coordinateSystems.append(transformationmatrix);
-        if(m_coordinateSystems.count() >= 1){
-            // if we have found 10 coordinatesystems
-            qDebug() << "------------------------------";
-            qDebug() << "Collected 1 coordinatesystems";
+        m_coordinateSystem = transformationmatrix;
+        qDebug() << "------------------------------";
+        qDebug() << "Collected 1 coordinatesystems";
 
-            m_collectingCoordinateSystems = false;
-            qDebug() << "-> State = Send KKS";
-            Core::instance()->window()->writeToTerminal("robot: sending coordinatesystem data ...");
-            m_state = StateSendCoordinateSystem;
-            sendCoordinateSystemData();
-        }
+        m_collectingCoordinateSystems = false;
+        qDebug() << "-> State = Send KKS";
+        Core::instance()->window()->writeToTerminal("robot: sending coordinatesystem data ...");
+        m_state = StateSendCoordinateSystem;
+        sendCoordinateSystemData();
     }
 }
 
@@ -183,12 +180,15 @@ void RobotCommander::moveHome()
 {
     Core::instance()->window()->writeToTerminal("Move to Home Position");
     m_server->sendData("MoveHome");
+    m_state = StateSleeping;
 }
 
 void RobotCommander::moveSearchPosition()
 {
     Core::instance()->window()->writeToTerminal("Move to Search Position");
     m_server->sendData("MoveSearch");
+    m_state = StateSleeping;
+
 }
 
 void RobotCommander::emergencyStop()
@@ -208,6 +208,8 @@ void RobotCommander::sendCoordinateSystemData()
 {
     m_server->sendData("KKS data...bla bla");
     m_state = StateDrawing;
+
+    m_coordinateSystems.clear();
 }
 
 void RobotCommander::requestPointPosition()

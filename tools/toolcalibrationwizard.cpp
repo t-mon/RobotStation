@@ -228,7 +228,7 @@ float ToolCalibrationWizard::roundValue(float value)
 
 void ToolCalibrationWizard::calculateOffset()
 {
-    m_offsetTransformation = m_cameraTransformation * m_toolTransformation;
+    m_offsetTransformation = m_cameraTransformation.inverted() * m_toolTransformation;
 
     QVector3D translation = Core::instance()->poseEngine()->calculateTranslationFromTransformation(m_offsetTransformation);
     QVector3D rotation = Core::instance()->poseEngine()->calculateRotationFromTransformation(m_offsetTransformation);

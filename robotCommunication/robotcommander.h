@@ -55,7 +55,7 @@ private:
     bool m_robotConnectionState;
 
     bool m_collectingCoordinateSystems;
-    QList<QMatrix4x4> m_coordinateSystems;
+    QMatrix4x4 m_coordinateSystem;
 
     void parsePointInformation(QByteArray data);
 

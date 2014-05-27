@@ -131,7 +131,7 @@ float PoseEstimationEngine::roundValue(float val)
 QMatrix4x4 PoseEstimationEngine::calculateTransformationFromPoint()
 {
     // deg to rad
-    float g = (float)m_wx * M_PI / 180;
+        float g = (float)m_wx * M_PI / 180;
     float b = (float)m_wy * M_PI / 180;
     float a = (float)m_wz * M_PI / 180;
 
@@ -252,32 +252,32 @@ QMatrix4x4 PoseEstimationEngine::estimateRobotPosition()
     float t3 = translationOutput.at<double>(2);
 
 
-    QMatrix4x4 transformationMatrix(r11, r12, r13, t1,
+    QMatrix4x4 transformationMatrix(r11, r12, r13, -t1,
                                     r21, r22, r23, t2,
                                     r31, r32, r33, t3,
                                      0,   0,   0,   1);
 
     // invert because solvePnP calculates camera positon, nor object position
-    transformationMatrix = transformationMatrix.inverted();
+    //transformationMatrix = transformationMatrix.inverted();
 
     // calculate offsets
-    qDebug() << "===================================================";
-    QMatrix4x4 offsetTransformationMatrix = calculateTransformationFromPoint();
-    qDebug() << offsetTransformationMatrix << m_robotSystemTransformationMatrix;
+    //qDebug() << "===================================================";
+    //QMatrix4x4 offsetTransformationMatrix = calculateTransformationFromPoint();
+    //qDebug() << offsetTransformationMatrix << m_robotSystemTransformationMatrix;
     m_robotSystemTransformationMatrix = transformationMatrix * calculateTransformationFromPoint();
-    qDebug() << "===================================================";
+    //qDebug() << "===================================================";
 
     // calculate transformation vector
     QVector3D coordinateSytemRealCenter;
     coordinateSytemRealCenter.setX(roundValue(m_robotSystemTransformationMatrix(0,3)));
     coordinateSytemRealCenter.setY(roundValue(m_robotSystemTransformationMatrix(1,3)));
     coordinateSytemRealCenter.setZ(roundValue(m_robotSystemTransformationMatrix(2,3)));
-    qDebug() << coordinateSytemRealCenter;
+    //qDebug() << coordinateSytemRealCenter;
     emit transformationVectorReady(coordinateSytemRealCenter);
 
     // calculate euler angles vector
     QVector3D coordinateSytemRealEuler = calculateEuler();
-    qDebug() << coordinateSytemRealEuler;
+    //qDebug() << coordinateSytemRealEuler;
     emit eulerAnglesReady(coordinateSytemRealEuler);
 
     // calculate robot coodinate system points for dawing
