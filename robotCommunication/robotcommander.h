@@ -37,6 +37,7 @@ public:
         StateMoveSearch,
         StateCalculatePosition,
         StateCollectingPositions,
+        StateRequestTCPPose,
         StateSendCoordinateSystem,
         StateDrawing,
         StateFinishing,
@@ -55,7 +56,9 @@ private:
     bool m_robotConnectionState;
 
     bool m_collectingCoordinateSystems;
-    QMatrix4x4 m_coordinateSystem;
+    QMatrix4x4 m_robotTcpTransformation;
+    bool m_collectingBaseTcpSystem;
+    QMatrix4x4 m_baseTcpTransformation;
 
     void parsePointInformation(QByteArray data);
 
@@ -78,7 +81,7 @@ public slots:
     void emergencyStop();
     void reset();
 
-    void sendCoordinateSystemData();
+    void sendCoordinateSystemData(QMatrix4x4 transformationmatrix);
     void requestPointPosition();
 
 };

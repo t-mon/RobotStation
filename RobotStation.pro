@@ -37,9 +37,9 @@ SOURCES += main.cpp\
         gui/settingsdialog.cpp \
         gui/robotcontrolwidget.cpp \
         gui/cameracontrolwidget.cpp \
-    robotCommunication/robottcpserver.cpp \
-    tools/toolcalibrationwizard.cpp \
-    tools/testdialog.cpp
+        robotCommunication/robottcpserver.cpp \
+        tools/toolcalibrationwizard.cpp \
+        tools/testdialog.cpp
 
 HEADERS  += gui/mainwindow.h \
         core.h \
@@ -57,9 +57,9 @@ HEADERS  += gui/mainwindow.h \
         gui/settingsdialog.h \
         gui/robotcontrolwidget.h \
         gui/cameracontrolwidget.h \
-    robotCommunication/robottcpserver.h \
-    tools/toolcalibrationwizard.h \
-    tools/testdialog.h
+        robotCommunication/robottcpserver.h \
+        tools/toolcalibrationwizard.h \
+        tools/testdialog.h
 
 OTHER_FILES +=
 

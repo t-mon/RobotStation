@@ -54,9 +54,8 @@ void PoseEstimationEngine::updateImage(Mat &image)
                 }
             }
 
-            // JUHU we have found the robot in pose -> robotcoordinatesystem
+            // JUHU we have found the robot pose -> robotcoordinatesystem
             m_robotSystemTransformationMatrix = estimateRobotPosition();
-            emit coordinateSystemFound(m_robotSystemTransformationMatrix);
 
             // drawing
             m_robotDrawingSystemCenter = calculateCoordinateSystemCenter(m_markerPoints.at(0), m_markerPoints.at(1), m_markerPoints.at(2), m_markerPoints.at(3));
@@ -266,6 +265,8 @@ QMatrix4x4 PoseEstimationEngine::estimateRobotPosition()
     //qDebug() << offsetTransformationMatrix << m_robotSystemTransformationMatrix;
     m_robotSystemTransformationMatrix = transformationMatrix * calculateTransformationFromPoint();
     //qDebug() << "===================================================";
+
+    emit coordinateSystemFound(m_robotSystemTransformationMatrix);
 
     // calculate transformation vector
     QVector3D coordinateSytemRealCenter;
